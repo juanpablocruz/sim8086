@@ -1,7 +1,7 @@
 package instruction
 
 import (
-	"github.com/juanpablocruz/aware/pkg/reader"
+	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
 
 type OperationType uint

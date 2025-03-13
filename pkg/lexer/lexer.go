@@ -1,8 +1,8 @@
 package lexer
 
 import (
-	"github.com/juanpablocruz/aware/pkg/instruction"
-	"github.com/juanpablocruz/aware/pkg/reader"
+	"github.com/juanpablocruz/sim8086/pkg/instruction"
+	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
 
 type Lexer struct {

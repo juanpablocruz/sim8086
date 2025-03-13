@@ -3,9 +3,9 @@ package lexer_test
 import (
 	"testing"
 
-	"github.com/juanpablocruz/aware/pkg/instruction"
-	"github.com/juanpablocruz/aware/pkg/lexer"
-	"github.com/juanpablocruz/aware/pkg/reader"
+	"github.com/juanpablocruz/sim8086/pkg/instruction"
+	"github.com/juanpablocruz/sim8086/pkg/lexer"
+	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
 
 func TestLexer_NextInstruction(t *testing.T) {

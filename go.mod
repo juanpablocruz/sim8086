@@ -1,4 +1,4 @@
-module github.com/juanpablocruz/aware
+module github.com/juanpablocruz/sim8086
 
 go 1.24.0
 
