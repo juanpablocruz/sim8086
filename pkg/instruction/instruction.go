@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-
-	"github.com/juanpablocruz/aware/pkg/token"
 )
 
 type OpCode uint8
@@ -67,7 +65,6 @@ func (i Instruction) String() string {
 }
 
 type Instruction struct {
-	OpCode    token.TokenType
 	Direction bool
 	Wide      bool
 	Mode      Mode

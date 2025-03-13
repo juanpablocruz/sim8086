@@ -6,7 +6,6 @@ import (
 	"github.com/juanpablocruz/aware/pkg/instruction"
 	"github.com/juanpablocruz/aware/pkg/lexer"
 	"github.com/juanpablocruz/aware/pkg/reader"
-	"github.com/juanpablocruz/aware/pkg/token"
 )
 
 func TestLexer_NextInstruction(t *testing.T) {
@@ -17,7 +16,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 		{input: []byte{0x89, 0xd9}, want: []instruction.Instruction{
 			{
 				Op:        instruction.Op_mov,
-				OpCode:    token.MOV_R,
 				Direction: false,
 				Wide:      true,
 				Mode:      instruction.Reg,
@@ -30,7 +28,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 			want: []instruction.Instruction{
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -39,7 +36,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      false,
 					Mode:      instruction.Reg,
@@ -48,7 +44,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -57,7 +52,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -66,7 +60,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -75,7 +68,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      false,
 					Mode:      instruction.Reg,
@@ -84,7 +76,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      false,
 					Mode:      instruction.Reg,
@@ -93,7 +84,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -102,7 +92,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -111,7 +100,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -120,7 +108,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				{
 					Op:        instruction.Op_mov,
-					OpCode:    token.MOV_R,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
@@ -147,7 +134,7 @@ func TestLexer_NextInstruction(t *testing.T) {
 			}
 
 			if got.Op != tt.want[i].Op {
-				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.OpCode, tt.want[i].OpCode)
+				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].Op)
 			}
 
 			if got.Direction != tt.want[i].Direction {
