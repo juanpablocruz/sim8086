@@ -406,7 +406,6 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 
 	// displacementIsW := ((bits[Bits_DispAlwaysW]) != 0 || (mod == 0b10) || hasDirectAddr)
 	// dataIsW := ((bits[Bits_WMakesDataW] != 0) && !s && (w == 0))
-	keepDir := true
 	var regOperand InstructionOperand
 	if has[Bits_REG] {
 		regOperand, _ = it.ResolveRegister(bits[Bits_REG], w)
@@ -425,8 +424,6 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 				mem.DisplacementValue |= (int(c) << dis)
 			}
 			modOperand = mem
-
-			keepDir = false
 		}
 	}
 
@@ -444,16 +441,35 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			}
 			imm, _ := it.ResolveImmediate(value, flags)
 			modOperand = imm
-			keepDir = false
 		}
 	}
 
-	if d && keepDir {
-		instr.RM = regOperand
-		instr.Reg = modOperand
-	} else {
-		instr.Reg = regOperand
-		instr.RM = modOperand
+	switch modOperand.Type {
+	case Operand_Register:
+		if !d {
+			instr.RM = regOperand
+			instr.Reg = modOperand
+		} else {
+			instr.Reg = regOperand
+			instr.RM = modOperand
+		}
+	case Operand_Immediate:
+		if d {
+			instr.RM = regOperand
+			instr.Reg = modOperand
+		} else {
+			instr.Reg = regOperand
+			instr.RM = modOperand
+		}
+	case Operand_Memory:
+		if !d {
+			instr.RM = regOperand
+			instr.Reg = modOperand
+		} else {
+			instr.Reg = regOperand
+			instr.RM = modOperand
+		}
+
 	}
 
 	instr.Mode = Mode(mod)

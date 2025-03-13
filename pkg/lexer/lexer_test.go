@@ -19,8 +19,8 @@ func TestLexer_NextInstruction(t *testing.T) {
 				Direction: false,
 				Wide:      true,
 				Mode:      instruction.Reg,
-				Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-				RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+				Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+				RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
 			},
 		}},
 		{
@@ -31,39 +31,7 @@ func TestLexer_NextInstruction(t *testing.T) {
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-				},
-				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
-				},
-				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
-				},
-				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
-				},
-				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
 					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
 				},
 				{
@@ -71,23 +39,15 @@ func TestLexer_NextInstruction(t *testing.T) {
 					Direction: false,
 					Wide:      false,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
-				},
-				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Reg,
 					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
 				},
 				{
 					Op:        instruction.Op_mov,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
 					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
 				},
 				{
@@ -103,16 +63,56 @@ func TestLexer_NextInstruction(t *testing.T) {
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "SP"}, Type: instruction.Operand_Register},
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+				},
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      false,
+					Mode:      instruction.Reg,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
+				},
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      false,
+					Mode:      instruction.Reg,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
 				},
 				{
 					Op:        instruction.Op_mov,
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BP"}, Type: instruction.Operand_Register},
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+				},
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Reg,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+				},
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Reg,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SP"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+				},
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Reg,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BP"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
 				},
 			},
 		},
@@ -131,8 +131,8 @@ func TestLexer_NextInstruction(t *testing.T) {
 					Direction: false,
 					Wide:      true,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
 				},
 				// mov dh, al
 				{
@@ -140,8 +140,8 @@ func TestLexer_NextInstruction(t *testing.T) {
 					Direction: false,
 					Wide:      false,
 					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DH"}, Type: instruction.Operand_Register},
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DH"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
 				},
 				// 8-bit immediate-to-register
 				// mov cl, 12
@@ -283,6 +283,20 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 				// Dest address calculation
 				// mov [bx + di], cx
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Memory,
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement: 0,
+						Terms: [2]instruction.Register{
+							{Name: "BX"},
+							{Name: "DI"},
+						},
+					}},
+				},
 				// mov [bp + si], cl
 				// mov [bp], ch
 			},
@@ -330,6 +344,9 @@ func TestLexer_NextInstruction(t *testing.T) {
 			case instruction.Operand_Memory:
 				if got.RM.Displacement != tt.want[i].RM.Displacement {
 					t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].RM.Displacement)
+				}
+				if got.RM.DisplacementValue != tt.want[i].RM.DisplacementValue {
+					t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].RM.DisplacementValue)
 				}
 				if len(got.RM.Terms) != len(tt.want[i].RM.Terms) {
 					t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].RM.Terms))

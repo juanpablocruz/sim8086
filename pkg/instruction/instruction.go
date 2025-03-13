@@ -103,16 +103,10 @@ func (i Instruction) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(i.Op.String() + " ")
-	if i.RM.Type != Operand_Register {
-		out.WriteString(i.Reg.String() + ",")
-		out.WriteString(i.RM.String())
-	} else if i.Direction {
-		out.WriteString(i.Reg.String() + ",")
-		out.WriteString(i.RM.String())
-	} else {
-		out.WriteString(i.RM.String() + ",")
-		out.WriteString(i.Reg.String())
-	}
+
+	out.WriteString(i.Reg.String() + ",")
+	out.WriteString(i.RM.String())
+
 	return out.String()
 }
 
