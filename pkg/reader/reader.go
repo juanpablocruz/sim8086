@@ -105,3 +105,12 @@ func (r *Reader) ReadByte() (byte, error) {
 
 	return r.Curr, nil
 }
+
+func (r *Reader) Dump() string {
+	var out bytes.Buffer
+
+	for _, b := range r.Data {
+		out.WriteString(fmt.Sprintf("0x%2x,", b))
+	}
+	return out.String()
+}

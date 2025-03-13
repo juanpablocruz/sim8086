@@ -1,6 +1,8 @@
 package instruction
 
 import (
+	"fmt"
+
 	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
 
@@ -172,7 +174,7 @@ var InstructionTable8086 = []InstructionEncoding{
 			{Bits_Literal, 4, 0, 0b1011},
 			{Usage: Bits_W, BitCount: 1},
 			{Usage: Bits_REG, BitCount: 3},
-			{Bits_Data, 0, 0, 0},
+			{Bits_Data, 8, 0, 0},
 			{Bits_WMakesDataW, 0, 0, 1},
 			{Bits_D, 0, 0, 1},
 		},
@@ -316,6 +318,9 @@ func New8086InstructionTable() InstructionTable {
 func (it InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, error) {
 	instr := Instruction{}
 
+	startingAddress := r.SegmentOffset
+	startingByte := r.Curr
+
 	for _, encoding := range it.Encodings {
 		in, err := it.TryDecode(encoding, r)
 		if err != nil {
@@ -325,12 +330,16 @@ func (it InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, err
 
 		if OperationType(instr.Op) != Op_None {
 			break
+		} else {
+			r.SegmentOffset = startingAddress
+			r.Curr = startingByte
 		}
 	}
 	return instr, nil
 }
 
 func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
+	// fmt.Printf("TryDecode: %08b\n", r.Curr)
 	instr := Instruction{}
 
 	bitIndx := 0
@@ -338,20 +347,26 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 	bits := make([]byte, Bits_Count)
 	has := make([]bool, Bits_Count)
 	valid := true
+	fullInstrBytes := []byte{}
+	fullInstrBytes = append(fullInstrBytes, r.Curr)
 	for _, bit := range encoding.Bits {
 		if bit.Usage == Bits_End {
 			break
 		}
 		if bit.Usage == Bits_Literal {
+			if bit.Value == 0 {
+				bitIndx += int(bit.BitCount)
+				continue
+			}
 			masked := r.Curr >> (8 - bit.BitCount)
 
 			if bit.Value&masked == masked {
 				instr.Op = (encoding.Op)
 				bitIndx += int(bit.BitCount)
+				valid = true
 			} else {
 				valid = false
 			}
-
 		} else {
 			// we have already parsed bitIndx bits.
 			// example 100010, so we want to test the next
@@ -361,10 +376,10 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			//       ^
 			mask := 0
 			for range bit.BitCount {
-
 				if bitIndx >= 8 {
 					bitIndx -= 8
-					r.ReadByte()
+					c, _ := r.ReadByte()
+					fullInstrBytes = append(fullInstrBytes, c)
 				}
 				mask |= 1 << (8 - bitIndx - 1)
 				bitIndx++
@@ -376,71 +391,100 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 
 		}
 	}
-
-	if valid {
-		mod := bits[Bits_MOD]
-		rm := bits[Bits_RM]
-		w := bits[Bits_W]
-		//	s := bits[Bits_S] == 1
-		d := bits[Bits_D] == 1
-
-		hasDirectAddr := (mod == 0b00) && (rm == 0b110)
-		has[Bits_Disp] = ((has[Bits_Disp]) || (mod == 0b10) || hasDirectAddr)
-
-		//	displacementIsW := ((bits[Bits_DispAlwaysW]) != 0 || (mod == 0b10) || hasDirectAddr)
-		//		dataIsW := ((bits[Bits_WMakesDataW] != 0) && !s && (w == 0))
-
-		var regOperand Register
-		if has[Bits_REG] {
-			regOperand, _ = it.ResolveRegister(bits[Bits_REG], w != 0)
-		}
-
-		var modOperand Register
-		if has[Bits_MOD] {
-			// register mode, no displacement
-			if mod == 0b11 {
-				modOperand, _ = it.ResolveRegister(rm, (w != 0) || (bits[Bits_RMRegAlwaysW] == 1))
-			} else {
-			}
-		}
-
-		if d {
-			instr.RM = regOperand
-			instr.Reg = modOperand
-		} else {
-			instr.Reg = regOperand
-			instr.RM = modOperand
-		}
-
-		instr.Mode = Mode(mod)
-		instr.Direction = d
-		instr.Wide = w == 1
+	if !valid {
+		return Instruction{}, nil
 	}
 
+	mod := bits[Bits_MOD]
+	rm := bits[Bits_RM]
+	w := bits[Bits_W] == 1
+	// s := bits[Bits_S] == 1
+	d := bits[Bits_D] == 1
+
+	hasDirectAddr := (mod == 0b00) && (rm == 0b110)
+	has[Bits_Disp] = ((has[Bits_Disp]) || (mod == 0b10) || hasDirectAddr)
+
+	// displacementIsW := ((bits[Bits_DispAlwaysW]) != 0 || (mod == 0b10) || hasDirectAddr)
+	// dataIsW := ((bits[Bits_WMakesDataW] != 0) && !s && (w == 0))
+	keepDir := true
+	var regOperand InstructionOperand
+	if has[Bits_REG] {
+		regOperand, _ = it.ResolveRegister(bits[Bits_REG], w)
+	}
+
+	var modOperand InstructionOperand
+	if has[Bits_MOD] {
+		// register mode, no displacement
+		if mod == byte(Reg) {
+			modOperand, _ = it.ResolveRegister(rm, w || (bits[Bits_RMRegAlwaysW] == 1))
+		} else {
+			// Memory mode
+			mem, _ := it.ResolveMemoryAddress(Mode(mod), bits[Bits_RM])
+			modOperand = mem
+			keepDir = false
+		}
+	}
+
+	// fmt.Printf("data: %v, disp: %v, mod:%v\n", has[Bits_Data], has[Bits_Disp], has[Bits_MOD])
+	if has[Bits_Data] && has[Bits_Disp] && !has[Bits_MOD] {
+	} else {
+		if has[Bits_Data] {
+			flags := 0
+			value := int(bits[Bits_Data])
+			if w {
+				flags |= int(Bits_W)
+				dataH, _ := r.ReadByte()
+				fullInstrBytes = append(fullInstrBytes, dataH)
+				value = (value) + (int(dataH) << 8)
+			}
+			imm, _ := it.ResolveImmediate(value, flags)
+			modOperand = imm
+			keepDir = false
+		}
+	}
+
+	if d && keepDir {
+		instr.RM = regOperand
+		instr.Reg = modOperand
+	} else {
+		instr.Reg = regOperand
+		instr.RM = modOperand
+	}
+
+	instr.Mode = Mode(mod)
+	instr.Direction = d
+	instr.Wide = w
+	/*
+		for _, b := range fullInstrBytes {
+			fmt.Printf("%08b ", b)
+		}
+		fmt.Println("")
+		fmt.Printf("%s\n", instr)
+	*/
 	return instr, nil
 }
 
-func (it InstructionTable) ResolveRegister(b byte, w bool) (Register, bool) {
-	regs := map[bool]map[uint8]Register{
+func (it InstructionTable) ResolveRegister(b byte, w bool) (InstructionOperand, bool) {
+	regs := map[bool]map[uint8]InstructionOperand{
 		true: {
-			0: {Name: "AX", Code: 0},
-			1: {Name: "CX", Code: 1},
-			2: {Name: "DX", Code: 2},
-			3: {Name: "BX", Code: 3},
-			4: {Name: "SP", Code: 4},
-			5: {Name: "BP", Code: 5},
-			6: {Name: "SI", Code: 6},
-			7: {Name: "DI", Code: 7},
+			0: {Register: Register{Name: "AX", Code: 0}, Type: Operand_Register},
+			1: {Register: Register{Name: "CX", Code: 1}, Type: Operand_Register},
+			2: {Register: Register{Name: "DX", Code: 2}, Type: Operand_Register},
+			3: {Register: Register{Name: "BX", Code: 3}, Type: Operand_Register},
+			4: {Register: Register{Name: "SP", Code: 4}, Type: Operand_Register},
+			5: {Register: Register{Name: "BP", Code: 5}, Type: Operand_Register},
+			6: {Register: Register{Name: "SI", Code: 6}, Type: Operand_Register},
+			7: {Register: Register{Name: "DI", Code: 7}, Type: Operand_Register},
 		},
 		false: {
-			0: {Name: "AL", Code: 0},
-			1: {Name: "CL", Code: 1},
-			2: {Name: "DL", Code: 2},
-			3: {Name: "BL", Code: 3},
-			4: {Name: "AH", Code: 4},
-			5: {Name: "CH", Code: 5},
-			6: {Name: "DH", Code: 6},
-			7: {Name: "BH", Code: 7},
+			0: {Register: Register{Name: "AL", Code: 0}, Type: Operand_Register},
+			1: {Register: Register{Name: "CL", Code: 1}, Type: Operand_Register},
+			2: {Register: Register{Name: "DL", Code: 2}, Type: Operand_Register},
+			3: {Register: Register{Name: "BL", Code: 3}, Type: Operand_Register},
+			4: {Register: Register{Name: "AH", Code: 4}, Type: Operand_Register},
+			5: {Register: Register{Name: "CH", Code: 5}, Type: Operand_Register},
+			6: {Register: Register{Name: "DH", Code: 6}, Type: Operand_Register},
+			7: {Register: Register{Name: "BH", Code: 7}, Type: Operand_Register},
 		},
 	}
 
@@ -448,6 +492,262 @@ func (it InstructionTable) ResolveRegister(b byte, w bool) (Register, bool) {
 
 	reg, ok := subSet[b]
 	return reg, ok
+}
+
+func (it InstructionTable) ResolveMemoryAddress(mod Mode, rm byte) (InstructionOperand, bool) {
+	memTables := map[Mode]map[byte]InstructionOperand{
+		Memory: {
+			0b000: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b001: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b010: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b011: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b100: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b101: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b110: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+				},
+			},
+			0b111: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 0,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+					},
+				},
+			},
+		},
+		Displ8: {
+			0b000: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b001: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b010: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b011: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b100: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b101: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b110: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+					},
+				},
+			},
+			0b111: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 8,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+					},
+				},
+			},
+		},
+
+		Disply16: {
+			0b000: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b001: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b010: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b011: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b100: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "SI", Code: 6},
+					},
+				},
+			},
+			0b101: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "DI", Code: 7},
+					},
+				},
+			},
+			0b110: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "BP", Code: 5},
+					},
+				},
+			},
+			0b111: {
+				Type: Operand_Memory,
+				EffectiveAddressExpression: EffectiveAddressExpression{
+					Displacement: 16,
+					Terms: [2]Register{
+						{Name: "BX", Code: 3},
+					},
+				},
+			},
+		},
+	}
+
+	vals, ok := memTables[mod][rm]
+	return vals, ok
+}
+
+func (it InstructionTable) ResolveImmediate(b int, flags int) (InstructionOperand, bool) {
+	var val int
+	if flags&int(Bits_W) == int(Bits_W) {
+		val = int(int16(b))
+	} else {
+		val = int(int8(b))
+	}
+	return InstructionOperand{
+		Type: Operand_Immediate,
+		Immediate: Immediate{
+			Value: val,
+			Flags: flags,
+		},
+	}, true
 }
 
 var OpcodeMnemonics = []string{
@@ -554,5 +854,10 @@ func GetMnemonic(op OperationType) string {
 }
 
 func (op OperationType) String() string {
-	return GetMnemonic(op)
+	mnemonic := GetMnemonic(op)
+
+	if mnemonic == "" {
+		mnemonic = fmt.Sprintf("ERROR(OP): %d", op)
+	}
+	return mnemonic
 }
