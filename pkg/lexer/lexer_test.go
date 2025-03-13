@@ -298,7 +298,35 @@ func TestLexer_NextInstruction(t *testing.T) {
 					}},
 				},
 				// mov [bp + si], cl
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      false,
+					Mode:      instruction.Memory,
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
+					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement: 0,
+						Terms: [2]instruction.Register{
+							{Name: "BP"},
+							{Name: "SI"},
+						},
+					}},
+				},
 				// mov [bp], ch
+
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      false,
+					Mode:      instruction.Displ8,
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement: 0,
+						Terms: [2]instruction.Register{
+							{Name: "BP"},
+						},
+					}},
+				},
 			},
 		},
 	}
