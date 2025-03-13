@@ -32,7 +32,7 @@ const (
 	// Memory Mode, 8-bit displacement
 	Displ8 Mode = 0b01
 	// Memory Mode, 16-bit displacement
-	Disply16 Mode = 0b10
+	Displ16 Mode = 0b10
 	// Register Mode, no displacement
 	Reg Mode = 0b11
 )
@@ -43,8 +43,8 @@ func (m Mode) String() string {
 		return fmt.Sprintf("Memory (%08b)", Memory)
 	case Displ8:
 		return fmt.Sprintf("Disply8 (%08b)", Displ8)
-	case Disply16:
-		return fmt.Sprintf("Disply16 (%08b)", Disply16)
+	case Displ16:
+		return fmt.Sprintf("Disply16 (%08b)", Displ16)
 	case Reg:
 		return fmt.Sprintf("Reg (%08b)", Reg)
 	default:
@@ -53,10 +53,10 @@ func (m Mode) String() string {
 }
 
 type EffectiveAddressExpression struct {
-	Terms           [2]Register
-	ExplicitSegment int
-	Displacement    int
-	Flags           int
+	Terms             [2]Register
+	DisplacementValue int
+	Displacement      int
+	Flags             int
 }
 
 func (eae EffectiveAddressExpression) String() string {
@@ -68,9 +68,9 @@ func (eae EffectiveAddressExpression) String() string {
 	}
 	if eae.Displacement != 0 {
 		switch eae.Terms[0].Code {
-		case 5, 6, 7, 3:
+		case 5, 6, 7:
 		default:
-			out.WriteString(fmt.Sprintf(" + %d", eae.Displacement))
+			out.WriteString(fmt.Sprintf(" + %d", eae.DisplacementValue))
 		}
 	}
 	return fmt.Sprintf("[%s]", out.String())

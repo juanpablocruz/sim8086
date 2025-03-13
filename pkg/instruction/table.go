@@ -420,7 +420,12 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 		} else {
 			// Memory mode
 			mem, _ := it.ResolveMemoryAddress(Mode(mod), bits[Bits_RM])
+			for dis := 0; dis < mem.Displacement; dis += 8 {
+				c, _ := r.ReadByte()
+				mem.DisplacementValue |= (int(c) << dis)
+			}
 			modOperand = mem
+
 			keepDir = false
 		}
 	}
@@ -454,13 +459,11 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 	instr.Mode = Mode(mod)
 	instr.Direction = d
 	instr.Wide = w
-	/*
-		for _, b := range fullInstrBytes {
-			fmt.Printf("%08b ", b)
-		}
-		fmt.Println("")
-		fmt.Printf("%s\n", instr)
-	*/
+	for _, b := range fullInstrBytes {
+		fmt.Printf("%08b ", b)
+	}
+	fmt.Println("")
+	fmt.Printf("%s\n", instr)
 	return instr, nil
 }
 
@@ -650,7 +653,7 @@ func (it InstructionTable) ResolveMemoryAddress(mod Mode, rm byte) (InstructionO
 			},
 		},
 
-		Disply16: {
+		Displ16: {
 			0b000: {
 				Type: Operand_Memory,
 				EffectiveAddressExpression: EffectiveAddressExpression{

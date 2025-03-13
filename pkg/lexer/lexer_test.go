@@ -249,24 +249,38 @@ func TestLexer_NextInstruction(t *testing.T) {
 
 				// Source address calculation plus 8-bit displacement
 				// mov ah, [bx + si + 4]
-				/*
-					{
-						Op:        instruction.Op_mov,
-						Direction: true,
-						Wide:      true,
-						Mode:      instruction.Displ8,
-						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
-						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-							Displacement: 8,
-							Terms: [2]instruction.Register{
-								{Name: "BX"},
-								{Name: "SI"},
-							},
-						}},
-					},*/
+				{
+					Op:        instruction.Op_mov,
+					Direction: true,
+					Wide:      false,
+					Mode:      instruction.Displ8,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
+					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      8,
+						DisplacementValue: 4,
+						Terms: [2]instruction.Register{
+							{Name: "BX"},
+							{Name: "SI"},
+						},
+					}},
+				},
 				// Source address calculation plus 16-bit displacement
 				// mov al, [bx + si + 4999]
-
+				{
+					Op:        instruction.Op_mov,
+					Direction: true,
+					Wide:      false,
+					Mode:      instruction.Displ16,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      16,
+						DisplacementValue: 4999,
+						Terms: [2]instruction.Register{
+							{Name: "BX"},
+							{Name: "SI"},
+						},
+					}},
+				},
 				// Dest address calculation
 				// mov [bx + di], cx
 				// mov [bp + si], cl
