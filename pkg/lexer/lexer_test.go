@@ -8,9 +8,13 @@ import (
 	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
 
+type testStruct struct {
+	instruction instruction.Instruction
+	str         string
+}
 type instructionTest struct {
 	input []byte
-	want  []instruction.Instruction
+	want  []testStruct
 }
 
 func validateInstructions(t *testing.T, tests []instructionTest) {
@@ -22,49 +26,52 @@ func validateInstructions(t *testing.T, tests []instructionTest) {
 		i := 0
 		for i < len(tt.want) {
 			got := l.NextInstruction()
-			if got.Op != tt.want[i].Op {
-				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].Op)
+			if got.Op != tt.want[i].instruction.Op {
+				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].instruction.Op)
 			}
-			if got.Direction != tt.want[i].Direction {
-				t.Errorf("NextToken() invalid direction. got=%v want=%v", got.Direction, tt.want[i].Direction)
+			if got.Direction != tt.want[i].instruction.Direction {
+				t.Errorf("NextToken() invalid direction. got=%v want=%v", got.Direction, tt.want[i].instruction.Direction)
 			}
-			if got.Wide != tt.want[i].Wide {
-				t.Errorf("NextToken() invalid wide. got=%v want=%v", got.Wide, tt.want[i].Wide)
+			if got.Wide != tt.want[i].instruction.Wide {
+				t.Errorf("NextToken() invalid wide. got=%v want=%v", got.Wide, tt.want[i].instruction.Wide)
 			}
-			if got.Mode != tt.want[i].Mode {
-				t.Errorf("NextToken() invalid Mode. got=%v want=%v", got.Mode, tt.want[i].Mode)
+			if got.Mode != tt.want[i].instruction.Mode {
+				t.Errorf("NextToken() invalid Mode. got=%v want=%v", got.Mode, tt.want[i].instruction.Mode)
 			}
-			if got.Reg.Type != tt.want[i].Reg.Type {
-				t.Errorf("NextToken() invalid Reg Type. got=%v want=%v", got.Reg.Type, tt.want[i].Reg.Type)
+			if got.String() != tt.want[i].str {
+				t.Errorf("NextToken() invalid String representation. got=%s want=%s", got.String(), tt.want[i].str)
 			}
-			if got.Reg.Name != tt.want[i].Reg.Name {
-				t.Errorf("NextToken() invalid Reg. got=%v want=%v", got.Reg.Name, tt.want[i].Reg.Name)
+			if got.Reg.Type != tt.want[i].instruction.Reg.Type {
+				t.Errorf("NextToken() invalid Reg Type. got=%v want=%v", got.Reg.Type, tt.want[i].instruction.Reg.Type)
 			}
-			if got.RM.Type != tt.want[i].RM.Type {
-				t.Errorf("NextToken() invalid RM Type. got=%v want=%v", got.RM.Type, tt.want[i].RM.Type)
+			if got.Reg.Name != tt.want[i].instruction.Reg.Name {
+				t.Errorf("NextToken() invalid Reg. got=%v want=%v", got.Reg.Name, tt.want[i].instruction.Reg.Name)
+			}
+			if got.RM.Type != tt.want[i].instruction.RM.Type {
+				t.Errorf("NextToken() invalid RM Type. got=%v want=%v", got.RM.Type, tt.want[i].instruction.RM.Type)
 			}
 			switch got.RM.Type {
 			case instruction.Operand_Register:
-				if got.RM.Name != tt.want[i].RM.Name {
-					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Name, tt.want[i].RM.Name)
+				if got.RM.Name != tt.want[i].instruction.RM.Name {
+					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Name, tt.want[i].instruction.RM.Name)
 				}
 			case instruction.Operand_Immediate:
-				if got.RM.Value != tt.want[i].RM.Value {
-					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Value, tt.want[i].RM.Value)
+				if got.RM.Value != tt.want[i].instruction.RM.Value {
+					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Value, tt.want[i].instruction.RM.Value)
 				}
 			case instruction.Operand_Memory:
-				if got.RM.Displacement != tt.want[i].RM.Displacement {
-					t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].RM.Displacement)
+				if got.RM.Displacement != tt.want[i].instruction.RM.Displacement {
+					t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].instruction.RM.Displacement)
 				}
-				if got.RM.DisplacementValue != tt.want[i].RM.DisplacementValue {
-					t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].RM.DisplacementValue)
+				if got.RM.DisplacementValue != tt.want[i].instruction.RM.DisplacementValue {
+					t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].instruction.RM.DisplacementValue)
 				}
-				if len(got.RM.Terms) != len(tt.want[i].RM.Terms) {
-					t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].RM.Terms))
+				if len(got.RM.Terms) != len(tt.want[i].instruction.RM.Terms) {
+					t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].instruction.RM.Terms))
 				}
 				for i2, term := range got.RM.Terms {
-					if term.Code > 0 && tt.want[i].RM.Terms[i2].Code > 0 && term.Name != tt.want[i].RM.Terms[i2].Name {
-						t.Errorf("NextToken() invalid RM Term %d. got=%v want=%v", i2, term, tt.want[i].RM.Terms[i2])
+					if term.Code > 0 && tt.want[i].instruction.RM.Terms[i2].Code > 0 && term.Name != tt.want[i].instruction.RM.Terms[i2].Name {
+						t.Errorf("NextToken() invalid RM Term %d. got=%v want=%v", i2, term, tt.want[i].instruction.RM.Terms[i2])
 					}
 				}
 			}
@@ -78,14 +85,17 @@ func validateInstructions(t *testing.T, tests []instructionTest) {
 
 func TestLexer_Listing37(t *testing.T) {
 	tests := []instructionTest{
-		{input: []byte{0x89, 0xd9}, want: []instruction.Instruction{
+		{input: []byte{0x89, 0xd9}, want: []testStruct{
 			{
-				Op:        instruction.Op_mov,
-				Direction: false,
-				Wide:      true,
-				Mode:      instruction.Reg,
-				Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-				RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+				str: "mov cx, bx",
+				instruction: instruction.Instruction{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Reg,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+				},
 			},
 		}},
 	}
@@ -96,94 +106,127 @@ func TestLexer_Listing38(t *testing.T) {
 	tests := []instructionTest{
 		{
 			input: []byte{0x89, 0xd9, 0x88, 0xe5, 0x89, 0xda, 0x89, 0xde, 0x89, 0xfb, 0x88, 0xc8, 0x88, 0xed, 0x89, 0xc3, 0x89, 0xf3, 0x89, 0xfc, 0x89, 0xc5},
-			want: []instruction.Instruction{
+			want: []testStruct{
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					str: "mov cx, bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
+					str: "mov ch, ah",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					str: "mov dx, bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					str: "mov si, bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+					str: "mov bx, di",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
+					str: "mov al, cl",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+					str: "mov ch, ch",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+					str: "mov bx, ax",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+					str: "mov bx, si",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SP"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+					str: "mov sp, di",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SP"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "DI"}, Type: instruction.Operand_Register},
+					},
 				},
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BP"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+					str: "mov bp, ax",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BP"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+					},
 				},
 			},
 		},
@@ -200,208 +243,256 @@ func TestLexer_Listing39(t *testing.T) {
 				0x00, 0x8a, 0x60, 0x04, 0x8a, 0x80, 0x87, 0x13, 0x89, 0x09, 0x88, 0x0a, 0x88,
 				0x6e, 0x00,
 			},
-			want: []instruction.Instruction{
+			want: []testStruct{
 				// Register-to-register
 				// mov si, bx
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					str: "mov si, bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "SI"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+					},
 				},
 				// mov dh, al
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Reg,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DH"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+					str: "mov dh, al",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DH"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+					},
 				},
 				// 8-bit immediate-to-register
 				// mov cl, 12
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 12}},
+					str: "mov cl, 12",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 12}},
+					},
 				},
 				// mov ch, -12
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: -12}},
+					str: "mov ch, -12",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: -12}},
+					},
 				},
 
 				// 16-bit immediate-to-register
 				// mov cx, 12
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 12}},
+					str: "mov cx, 12",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 12}},
+					},
 				},
 				// mov cx, -12
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: -12}},
+					str: "mov cx, -12",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: -12}},
+					},
 				},
 				// mov dx, 3948
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 3948}},
+					str: "mov dx, 3948",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 3948}},
+					},
 				},
 				// mov dx, -3948
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: -3948}},
+					str: "mov dx, -3948",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: -3948}},
+					},
 				},
 
 				// Source address calculation
 				// mov al, [bx+ si]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      false,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement: 0,
-						Terms: [2]instruction.Register{
-							{Name: "BX", Code: 3},
-							{Name: "SI", Code: 6},
-						},
-					}},
+					str: "mov al, [bx + si]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement: 0,
+							Terms: [2]instruction.Register{
+								{Name: "BX", Code: 3},
+								{Name: "SI", Code: 6},
+							},
+						}},
+					},
 				},
 				// mov bx, [bp + di]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement: 0,
-						Terms: [2]instruction.Register{
-							{Name: "BP"},
-							{Name: "DI"},
-						},
-					}},
+					str: "mov bx, [bp + di]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement: 0,
+							Terms: [2]instruction.Register{
+								{Name: "BP"},
+								{Name: "DI"},
+							},
+						}},
+					},
 				},
 				// mov dx, [bp]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      true,
-					Mode:      instruction.Displ8,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement: 8,
-						Terms: [2]instruction.Register{
-							{Name: "BP"},
-						},
-					}},
+					str: "mov dx, [bp]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement: 8,
+							Terms: [2]instruction.Register{
+								{Name: "BP"},
+							},
+						}},
+					},
 				},
 
 				// Source address calculation plus 8-bit displacement
 				// mov ah, [bx+ si + 4]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      false,
-					Mode:      instruction.Displ8,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      8,
-						DisplacementValue: 4,
-						Terms: [2]instruction.Register{
-							{Name: "BX"},
-							{Name: "SI"},
-						},
-					}},
+					str: "mov ah, [bx + si + 4]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AH"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      8,
+							DisplacementValue: 4,
+							Terms: [2]instruction.Register{
+								{Name: "BX"},
+								{Name: "SI"},
+							},
+						}},
+					},
 				},
 				// Source address calculation plus 16-bit displacement
 				// mov al, [bx+ si + 4999]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      false,
-					Mode:      instruction.Displ16,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      16,
-						DisplacementValue: 4999,
-						Terms: [2]instruction.Register{
-							{Name: "BX"},
-							{Name: "SI"},
-						},
-					}},
+					str: "mov al, [bx + si + 4999]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Displ16,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AL"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      16,
+							DisplacementValue: 4999,
+							Terms: [2]instruction.Register{
+								{Name: "BX"},
+								{Name: "SI"},
+							},
+						}},
+					},
 				},
 				// Dest address calculation
 				// mov [bx+ di], cx
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement: 0,
-						Terms: [2]instruction.Register{
-							{Name: "BX"},
-							{Name: "DI"},
-						},
-					}},
+					str: "mov [bx + di], cx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement: 0,
+							Terms: [2]instruction.Register{
+								{Name: "BX"},
+								{Name: "DI"},
+							},
+						}},
+					},
 				},
 				// mov [bp + si], cl
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Memory,
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
-					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement: 0,
-						Terms: [2]instruction.Register{
-							{Name: "BP"},
-							{Name: "SI"},
-						},
-					}},
+					str: "mov [bp + si], cl",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement: 0,
+							Terms: [2]instruction.Register{
+								{Name: "BP"},
+								{Name: "SI"},
+							},
+						}},
+					},
 				},
 				// mov [bp], ch
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Displ8,
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
-					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement: 0,
-						Terms: [2]instruction.Register{
-							{Name: "BP"},
-						},
-					}},
+					str: "mov [bp], ch",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement: 0,
+							Terms: [2]instruction.Register{
+								{Name: "BP"},
+							},
+						}},
+					},
 				},
 			},
 		},
@@ -413,85 +504,100 @@ func TestLexer_Listing40(t *testing.T) {
 	tests := []instructionTest{
 		{
 			input: []byte{0x8b, 0x41, 0xdb, 0x89, 0x8c, 0xd4, 0xfe, 0x8b, 0x57, 0xe0, 0xc6, 0x3, 0x7, 0xc7, 0x85, 0x85, 0x3, 0x5b, 0x1, 0x8b, 0x2e, 0x5, 0x0, 0x8b, 0x1e, 0x82, 0xd, 0xa1, 0xfb, 0x9, 0xa1, 0x10, 0x0, 0xa3, 0xfa, 0x9, 0xa3, 0xf, 0x0},
-			want: []instruction.Instruction{
+			want: []testStruct{
 				// Signed displacements
 				// mov ax, [bx + di - 37]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      true,
-					Mode:      instruction.Displ8,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      8,
-						DisplacementValue: -37,
-						Terms: [2]instruction.Register{
-							{Name: "BX"},
-							{Name: "DI"},
-						},
-					}},
+					str: "mov ax, [bx + di - 37]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      8,
+							DisplacementValue: -37,
+							Terms: [2]instruction.Register{
+								{Name: "BX"},
+								{Name: "DI"},
+							},
+						}},
+					},
 				},
 				// mov [si - 300], cx
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Displ16,
-					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
-					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      8,
-						DisplacementValue: -300,
-						Terms: [2]instruction.Register{
-							{Name: "SI"},
-						},
-					}},
+					str: "mov [si - 300], cx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ16,
+						RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      8,
+							DisplacementValue: -300,
+							Terms: [2]instruction.Register{
+								{Name: "SI"},
+							},
+						}},
+					},
 				},
 				// mov dx, [bx - 32]
 				{
-					Op:        instruction.Op_mov,
-					Direction: true,
-					Wide:      true,
-					Mode:      instruction.Displ8,
-					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
-					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      8,
-						DisplacementValue: -32,
-						Terms: [2]instruction.Register{
-							{Name: "BX"},
-						},
-					}},
+					str: "mov dx, [bx - 32]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      8,
+							DisplacementValue: -32,
+							Terms: [2]instruction.Register{
+								{Name: "BX"},
+							},
+						}},
+					},
 				},
 				// Explicit sizes
 				// mov [bp + di], byte 7
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      false,
-					Mode:      instruction.Memory,
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 7}},
-					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      0,
-						DisplacementValue: 0,
-						Terms: [2]instruction.Register{
-							{Name: "BP"},
-							{Name: "DI"},
-						},
-					}},
+					str: "mov [bp + di], byte 7",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 7}},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 0,
+							Terms: [2]instruction.Register{
+								{Name: "BP"},
+								{Name: "DI"},
+							},
+						}},
+					},
 				},
 				// mov [di + 901], word 347
 				{
-					Op:        instruction.Op_mov,
-					Direction: false,
-					Wide:      true,
-					Mode:      instruction.Memory,
-					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 347}},
-					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
-						Displacement:      16,
-						DisplacementValue: 901,
-						Terms: [2]instruction.Register{
-							{Name: "DI"},
-						},
-					}},
+					str: "mov [di + 901], word 347",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 347}},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      16,
+							DisplacementValue: 901,
+							Terms: [2]instruction.Register{
+								{Name: "DI"},
+							},
+						}},
+					},
 				},
 				// Direct address
 				// mov bp, [5]
