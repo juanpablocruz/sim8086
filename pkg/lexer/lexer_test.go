@@ -8,11 +8,76 @@ import (
 	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
 
-func TestLexer_NextInstruction(t *testing.T) {
-	tests := []struct {
-		input []byte
-		want  []instruction.Instruction
-	}{
+type instructionTest struct {
+	input []byte
+	want  []instruction.Instruction
+}
+
+func validateInstructions(t *testing.T, tests []instructionTest) {
+	for _, tt := range tests {
+
+		r := reader.Reader{}
+		r.Data = tt.input
+		l := lexer.New(&r)
+		i := 0
+		for i < len(tt.want) {
+			got := l.NextInstruction()
+			if got.Op != tt.want[i].Op {
+				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].Op)
+			}
+			if got.Direction != tt.want[i].Direction {
+				t.Errorf("NextToken() invalid direction. got=%v want=%v", got.Direction, tt.want[i].Direction)
+			}
+			if got.Wide != tt.want[i].Wide {
+				t.Errorf("NextToken() invalid wide. got=%v want=%v", got.Wide, tt.want[i].Wide)
+			}
+			if got.Mode != tt.want[i].Mode {
+				t.Errorf("NextToken() invalid Mode. got=%v want=%v", got.Mode, tt.want[i].Mode)
+			}
+			if got.Reg.Type != tt.want[i].Reg.Type {
+				t.Errorf("NextToken() invalid Reg Type. got=%v want=%v", got.Reg.Type, tt.want[i].Reg.Type)
+			}
+			if got.Reg.Name != tt.want[i].Reg.Name {
+				t.Errorf("NextToken() invalid Reg. got=%v want=%v", got.Reg.Name, tt.want[i].Reg.Name)
+			}
+			if got.RM.Type != tt.want[i].RM.Type {
+				t.Errorf("NextToken() invalid RM Type. got=%v want=%v", got.RM.Type, tt.want[i].RM.Type)
+			}
+			switch got.RM.Type {
+			case instruction.Operand_Register:
+				if got.RM.Name != tt.want[i].RM.Name {
+					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Name, tt.want[i].RM.Name)
+				}
+			case instruction.Operand_Immediate:
+				if got.RM.Value != tt.want[i].RM.Value {
+					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Value, tt.want[i].RM.Value)
+				}
+			case instruction.Operand_Memory:
+				if got.RM.Displacement != tt.want[i].RM.Displacement {
+					t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].RM.Displacement)
+				}
+				if got.RM.DisplacementValue != tt.want[i].RM.DisplacementValue {
+					t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].RM.DisplacementValue)
+				}
+				if len(got.RM.Terms) != len(tt.want[i].RM.Terms) {
+					t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].RM.Terms))
+				}
+				for i2, term := range got.RM.Terms {
+					if term.Code > 0 && tt.want[i].RM.Terms[i2].Code > 0 && term.Name != tt.want[i].RM.Terms[i2].Name {
+						t.Errorf("NextToken() invalid RM Term %d. got=%v want=%v", i2, term, tt.want[i].RM.Terms[i2])
+					}
+				}
+			}
+			i++
+		}
+		if i != len(tt.want) {
+			t.Errorf("NextToken() invalid number of instructions. got=%d want=%d", i, len(tt.want))
+		}
+	}
+}
+
+func TestLexer_Listing37(t *testing.T) {
+	tests := []instructionTest{
 		{input: []byte{0x89, 0xd9}, want: []instruction.Instruction{
 			{
 				Op:        instruction.Op_mov,
@@ -23,6 +88,12 @@ func TestLexer_NextInstruction(t *testing.T) {
 				RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "BX"}, Type: instruction.Operand_Register},
 			},
 		}},
+	}
+	validateInstructions(t, tests)
+}
+
+func TestLexer_Listing38(t *testing.T) {
+	tests := []instructionTest{
 		{
 			input: []byte{0x89, 0xd9, 0x88, 0xe5, 0x89, 0xda, 0x89, 0xde, 0x89, 0xfb, 0x88, 0xc8, 0x88, 0xed, 0x89, 0xc3, 0x89, 0xf3, 0x89, 0xfc, 0x89, 0xc5},
 			want: []instruction.Instruction{
@@ -116,6 +187,12 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 			},
 		},
+	}
+	validateInstructions(t, tests)
+}
+
+func TestLexer_Listing39(t *testing.T) {
+	tests := []instructionTest{
 		{
 			input: []byte{
 				0x89, 0xde, 0x88, 0xc6, 0xb1, 0x0c, 0xb5, 0xf4, 0xb9, 0x0c, 0x00, 0xb9, 0xf4,
@@ -202,7 +279,7 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 
 				// Source address calculation
-				// mov al, [bx + si]
+				// mov al, [bx+ si]
 				{
 					Op:        instruction.Op_mov,
 					Direction: true,
@@ -248,7 +325,7 @@ func TestLexer_NextInstruction(t *testing.T) {
 				},
 
 				// Source address calculation plus 8-bit displacement
-				// mov ah, [bx + si + 4]
+				// mov ah, [bx+ si + 4]
 				{
 					Op:        instruction.Op_mov,
 					Direction: true,
@@ -265,7 +342,7 @@ func TestLexer_NextInstruction(t *testing.T) {
 					}},
 				},
 				// Source address calculation plus 16-bit displacement
-				// mov al, [bx + si + 4999]
+				// mov al, [bx+ si + 4999]
 				{
 					Op:        instruction.Op_mov,
 					Direction: true,
@@ -282,7 +359,7 @@ func TestLexer_NextInstruction(t *testing.T) {
 					}},
 				},
 				// Dest address calculation
-				// mov [bx + di], cx
+				// mov [bx+ di], cx
 				{
 					Op:        instruction.Op_mov,
 					Direction: false,
@@ -313,7 +390,6 @@ func TestLexer_NextInstruction(t *testing.T) {
 					}},
 				},
 				// mov [bp], ch
-
 				{
 					Op:        instruction.Op_mov,
 					Direction: false,
@@ -330,65 +406,109 @@ func TestLexer_NextInstruction(t *testing.T) {
 			},
 		},
 	}
+	validateInstructions(t, tests)
+}
 
-	for _, tt := range tests {
+func TestLexer_Listing40(t *testing.T) {
+	tests := []instructionTest{
+		{
+			input: []byte{0x8b, 0x41, 0xdb, 0x89, 0x8c, 0xd4, 0xfe, 0x8b, 0x57, 0xe0, 0xc6, 0x3, 0x7, 0xc7, 0x85, 0x85, 0x3, 0x5b, 0x1, 0x8b, 0x2e, 0x5, 0x0, 0x8b, 0x1e, 0x82, 0xd, 0xa1, 0xfb, 0x9, 0xa1, 0x10, 0x0, 0xa3, 0xfa, 0x9, 0xa3, 0xf, 0x0},
+			want: []instruction.Instruction{
+				// Signed displacements
+				// mov ax, [bx + di - 37]
+				{
+					Op:        instruction.Op_mov,
+					Direction: true,
+					Wide:      true,
+					Mode:      instruction.Displ8,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "AX"}, Type: instruction.Operand_Register},
+					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      8,
+						DisplacementValue: -37,
+						Terms: [2]instruction.Register{
+							{Name: "BX"},
+							{Name: "DI"},
+						},
+					}},
+				},
+				// mov [si - 300], cx
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Displ16,
+					RM:        instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
+					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      8,
+						DisplacementValue: -300,
+						Terms: [2]instruction.Register{
+							{Name: "SI"},
+						},
+					}},
+				},
+				// mov dx, [bx - 32]
+				{
+					Op:        instruction.Op_mov,
+					Direction: true,
+					Wide:      true,
+					Mode:      instruction.Displ8,
+					Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
+					RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      8,
+						DisplacementValue: -32,
+						Terms: [2]instruction.Register{
+							{Name: "BX"},
+						},
+					}},
+				},
+				// Explicit sizes
+				// mov [bp + di], byte 7
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      false,
+					Mode:      instruction.Memory,
+					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 7}},
+					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      0,
+						DisplacementValue: 0,
+						Terms: [2]instruction.Register{
+							{Name: "BP"},
+							{Name: "DI"},
+						},
+					}},
+				},
+				// mov [di + 901], word 347
+				{
+					Op:        instruction.Op_mov,
+					Direction: false,
+					Wide:      true,
+					Mode:      instruction.Memory,
+					RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 347}},
+					Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+						Displacement:      16,
+						DisplacementValue: 901,
+						Terms: [2]instruction.Register{
+							{Name: "DI"},
+						},
+					}},
+				},
+				// Direct address
+				// mov bp, [5]
 
-		r := reader.Reader{}
-		r.Data = tt.input
-		l := lexer.New(&r)
-		i := 0
-		for i < len(tt.want) {
-			got := l.NextInstruction()
-			if got.Op != tt.want[i].Op {
-				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].Op)
-			}
-			if got.Direction != tt.want[i].Direction {
-				t.Errorf("NextToken() invalid direction. got=%v want=%v", got.Direction, tt.want[i].Direction)
-			}
-			if got.Wide != tt.want[i].Wide {
-				t.Errorf("NextToken() invalid wide. got=%v want=%v", got.Wide, tt.want[i].Wide)
-			}
-			if got.Mode != tt.want[i].Mode {
-				t.Errorf("NextToken() invalid Mode. got=%v want=%v", got.Mode, tt.want[i].Mode)
-			}
-			if got.Reg.Type != tt.want[i].Reg.Type {
-				t.Errorf("NextToken() invalid Reg Type. got=%v want=%v", got.Reg.Type, tt.want[i].Reg.Type)
-			}
-			if got.Reg.Name != tt.want[i].Reg.Name {
-				t.Errorf("NextToken() invalid Reg. got=%v want=%v", got.Reg.Name, tt.want[i].Reg.Name)
-			}
-			if got.RM.Type != tt.want[i].RM.Type {
-				t.Errorf("NextToken() invalid RM Type. got=%v want=%v", got.RM.Type, tt.want[i].RM.Type)
-			}
-			switch got.RM.Type {
-			case instruction.Operand_Register:
-				if got.RM.Name != tt.want[i].RM.Name {
-					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Name, tt.want[i].RM.Name)
-				}
-			case instruction.Operand_Immediate:
-				if got.RM.Value != tt.want[i].RM.Value {
-					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Value, tt.want[i].RM.Value)
-				}
-			case instruction.Operand_Memory:
-				if got.RM.Displacement != tt.want[i].RM.Displacement {
-					t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].RM.Displacement)
-				}
-				if got.RM.DisplacementValue != tt.want[i].RM.DisplacementValue {
-					t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].RM.DisplacementValue)
-				}
-				if len(got.RM.Terms) != len(tt.want[i].RM.Terms) {
-					t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].RM.Terms))
-				}
-				for i2, term := range got.RM.Terms {
-					if term.Code > 0 && tt.want[i].RM.Terms[i2].Code > 0 && term.Name != tt.want[i].RM.Terms[i2].Name {
-						t.Errorf("NextToken() invalid RM Term %d. got=%v want=%v", i2, term, tt.want[i].RM.Terms[i2])
-					}
-				}
-			}
-			i++
-		}
-		if i != len(tt.want) {
-			t.Errorf("NextToken() invalid number of instructions. got=%d want=%d", i, len(tt.want))
-		}
+				// mov bx, [3458]
+
+				// Memory-to-accumulator
+				// mov ax, [2555]
+
+				// mov ax, [16]
+
+				// Accumulator-to-memory
+				// mov [2554], ax
+
+				// mov [15], ax
+			},
+		},
 	}
+	validateInstructions(t, tests)
 }

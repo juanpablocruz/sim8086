@@ -70,7 +70,11 @@ func (eae EffectiveAddressExpression) String() string {
 		switch eae.Terms[0].Code {
 		case 5, 6, 7:
 		default:
-			out.WriteString(fmt.Sprintf(" + %d", eae.DisplacementValue))
+			if eae.DisplacementValue < 0 {
+				out.WriteString(fmt.Sprintf(" - %d", eae.DisplacementValue*-1))
+			} else {
+				out.WriteString(fmt.Sprintf(" + %d", eae.DisplacementValue))
+			}
 		}
 	}
 	return fmt.Sprintf("[%s]", out.String())
@@ -104,7 +108,14 @@ func (i Instruction) String() string {
 
 	out.WriteString(i.Op.String() + " ")
 
-	out.WriteString(i.Reg.String() + ",")
+	out.WriteString(i.Reg.String() + ", ")
+	if i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
+		if i.Wide {
+			out.WriteString(" word ")
+		} else {
+			out.WriteString(" byte ")
+		}
+	}
 	out.WriteString(i.RM.String())
 
 	return out.String()
@@ -125,4 +136,42 @@ type Instruction struct {
 	RM        InstructionOperand
 
 	Op OperationType
+}
+
+type InstructionBitsUsage byte
+
+const (
+	Bits_End InstructionBitsUsage = iota
+	Bits_Literal
+	Bits_D
+	Bits_S
+	Bits_W
+	Bits_V
+	Bits_Z
+	Bits_MOD
+	Bits_REG
+	Bits_RM
+	Bits_SR
+	Bits_Disp
+	Bits_Data
+
+	Bits_DispAlwaysW
+	Bits_WMakesDataW
+	Bits_RMRegAlwaysW
+	Bits_RelJMPDisp
+	Bits_Far
+
+	Bits_Count
+)
+
+type InstructionBits struct {
+	Usage    InstructionBitsUsage
+	BitCount byte
+	Shift    byte
+	Value    byte
+}
+
+type InstructionEncoding struct {
+	Op   OperationType
+	Bits []InstructionBits
 }
