@@ -503,7 +503,11 @@ func TestLexer_Listing39(t *testing.T) {
 func TestLexer_Listing40(t *testing.T) {
 	tests := []instructionTest{
 		{
-			input: []byte{0x8b, 0x41, 0xdb, 0x89, 0x8c, 0xd4, 0xfe, 0x8b, 0x57, 0xe0, 0xc6, 0x3, 0x7, 0xc7, 0x85, 0x85, 0x3, 0x5b, 0x1, 0x8b, 0x2e, 0x5, 0x0, 0x8b, 0x1e, 0x82, 0xd, 0xa1, 0xfb, 0x9, 0xa1, 0x10, 0x0, 0xa3, 0xfa, 0x9, 0xa3, 0xf, 0x0},
+			input: []byte{
+				0x8b, 0x41, 0xdb, 0x89, 0x8c, 0xd4, 0xfe, 0x8b, 0x57, 0xe0, 0xc6, 0x3, 0x7, 0xc7, 0x85,
+				0x85, 0x3, 0x5b, 0x1, 0x8b, 0x2e, 0x5, 0x0, 0x8b, 0x1e, 0x82, 0xd, 0xa1, 0xfb, 0x9, 0xa1,
+				0x10, 0x0, 0xa3, 0xfa, 0x9, 0xa3, 0xf, 0x0,
+			},
 			want: []testStruct{
 				// Signed displacements
 				// mov ax, [bx + di - 37]
@@ -588,7 +592,7 @@ func TestLexer_Listing40(t *testing.T) {
 						Op:        instruction.Op_mov,
 						Direction: false,
 						Wide:      true,
-						Mode:      instruction.Memory,
+						Mode:      instruction.Displ16,
 						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 347}},
 						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
 							Displacement:      16,
@@ -601,12 +605,51 @@ func TestLexer_Listing40(t *testing.T) {
 				},
 				// Direct address
 				// mov bp, [5]
-
+				{
+					str: "mov bp, [5]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BP"}},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 5,
+						}},
+					},
+				},
 				// mov bx, [3458]
-
+				{
+					str: "mov bx, [3458]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 3458,
+						}},
+					},
+				},
 				// Memory-to-accumulator
 				// mov ax, [2555]
-
+				{
+					str: "mov ax, [2555]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 2555,
+						}},
+					},
+				},
 				// mov ax, [16]
 
 				// Accumulator-to-memory

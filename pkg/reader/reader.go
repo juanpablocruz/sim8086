@@ -13,6 +13,8 @@ type Reader struct {
 	SegmentBase   int
 	SegmentOffset int
 	Curr          byte
+
+	byteRecord []byte
 }
 
 func New(filepath string) (*Reader, error) {
@@ -35,6 +37,10 @@ func New(filepath string) (*Reader, error) {
 
 func (r *Reader) Close() {
 	r.f.Close()
+}
+
+func (r *Reader) BeginByteRecord() {
+	r.byteRecord = []byte{}
 }
 
 func (r *Reader) Read(filePath string) (*os.File, error) {
@@ -103,14 +109,29 @@ func (r *Reader) ReadByte() (byte, error) {
 	r.SegmentBase = r.SegmentOffset
 	r.SegmentOffset++
 
+	r.byteRecord = append(r.byteRecord, r.Curr)
 	return r.Curr, nil
 }
 
+func (r *Reader) Rewind(offset int) {
+	r.SegmentOffset = offset
+	r.Curr = r.Data[r.SegmentOffset]
+	r.SegmentBase = r.SegmentOffset
+}
+
 func (r *Reader) Dump() string {
+	var binout bytes.Buffer
 	var out bytes.Buffer
 
 	for _, b := range r.Data {
+		binout.WriteString(fmt.Sprintf("%08b ", b))
 		out.WriteString(fmt.Sprintf("0x%2x,", b))
 	}
-	return out.String()
+	return fmt.Sprintf("%s\n%s", binout.String(), out.String())
+}
+
+func (r *Reader) EndByteRecord() []byte {
+	rec := r.byteRecord
+	r.byteRecord = []byte{}
+	return rec
 }

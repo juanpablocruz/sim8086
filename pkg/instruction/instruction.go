@@ -62,19 +62,19 @@ type EffectiveAddressExpression struct {
 func (eae EffectiveAddressExpression) String() string {
 	var out bytes.Buffer
 
+	if eae.Terms[0].Name == "" && eae.Terms[1].Name == "" && eae.DisplacementValue != 0 {
+		return fmt.Sprintf("[%d]", eae.DisplacementValue)
+	}
+
 	out.WriteString(strings.ToLower(eae.Terms[0].Name))
 	if eae.Terms[1].Code > 0 {
 		out.WriteString(fmt.Sprintf(" + %s", strings.ToLower(eae.Terms[1].Name)))
 	}
-	if eae.Displacement != 0 {
-		switch eae.Terms[0].Code {
-		case 5, 6, 7:
-		default:
-			if eae.DisplacementValue < 0 {
-				out.WriteString(fmt.Sprintf(" - %d", eae.DisplacementValue*-1))
-			} else {
-				out.WriteString(fmt.Sprintf(" + %d", eae.DisplacementValue))
-			}
+	if eae.DisplacementValue != 0 {
+		if eae.DisplacementValue < 0 {
+			out.WriteString(fmt.Sprintf(" - %d", eae.DisplacementValue*-1))
+		} else {
+			out.WriteString(fmt.Sprintf(" + %d", eae.DisplacementValue))
 		}
 	}
 	return fmt.Sprintf("[%s]", out.String())
@@ -111,9 +111,9 @@ func (i Instruction) String() string {
 	out.WriteString(i.Reg.String() + ", ")
 	if i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
 		if i.Wide {
-			out.WriteString(" word ")
+			out.WriteString("word ")
 		} else {
-			out.WriteString(" byte ")
+			out.WriteString("byte ")
 		}
 	}
 	out.WriteString(i.RM.String())

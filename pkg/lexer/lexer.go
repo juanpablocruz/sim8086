@@ -1,6 +1,8 @@
 package lexer
 
 import (
+	"fmt"
+
 	"github.com/juanpablocruz/sim8086/pkg/instruction"
 	"github.com/juanpablocruz/sim8086/pkg/reader"
 )
@@ -30,6 +32,7 @@ func (l *Lexer) NextInstruction() instruction.Instruction {
 	var tok instruction.Instruction
 
 	if l.r.Curr == 0 {
+		fmt.Printf("no curr\n")
 		return tok
 	}
 
@@ -37,6 +40,7 @@ func (l *Lexer) NextInstruction() instruction.Instruction {
 	if err != nil {
 		return tok
 	}
+
 	l.readByte()
 
 	return in

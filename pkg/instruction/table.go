@@ -40,14 +40,13 @@ func (it InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, err
 func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
 	// fmt.Printf("TryDecode: %08b\n", r.Curr)
 	instr := Instruction{}
+	r.BeginByteRecord()
 
 	bitIndx := 0
 
 	bits := make([]byte, Bits_Count)
 	has := make([]bool, Bits_Count)
 	valid := true
-	fullInstrBytes := []byte{}
-	fullInstrBytes = append(fullInstrBytes, r.Curr)
 	for _, bit := range encoding.Bits {
 		if bit.Usage == Bits_End {
 			break
@@ -77,8 +76,7 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			for range bit.BitCount {
 				if bitIndx >= 8 {
 					bitIndx -= 8
-					c, _ := r.ReadByte()
-					fullInstrBytes = append(fullInstrBytes, c)
+					r.ReadByte()
 				}
 				mask |= 1 << (8 - bitIndx - 1)
 				bitIndx++
@@ -103,8 +101,6 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 	hasDirectAddr := (mod == 0b00) && (rm == 0b110)
 	has[Bits_Disp] = ((has[Bits_Disp]) || (mod == 0b10) || hasDirectAddr)
 
-	// displacementIsW := ((bits[Bits_DispAlwaysW]) != 0 || (mod == 0b10) || hasDirectAddr)
-	// dataIsW := ((bits[Bits_WMakesDataW] != 0) && !s && (w == 0))
 	var regOperand InstructionOperand
 	if has[Bits_REG] {
 		regOperand, _ = it.ResolveRegister(bits[Bits_REG], w)
@@ -119,6 +115,14 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			// Memory mode
 			mem, _ := it.ResolveMemoryAddress(Mode(mod), bits[Bits_RM])
 			tmp := mem.DisplacementValue
+			if hasDirectAddr {
+				c, _ := r.ReadByte()
+				tmp = int(c)
+				if w {
+					c, _ := r.ReadByte()
+					tmp |= int(c) << 8
+				}
+			}
 			for dis := 0; dis < mem.Displacement; dis += 8 {
 				c, _ := r.ReadByte()
 				tmp |= (int(c) << dis)
@@ -129,6 +133,7 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			case 16:
 				tmp = int(int16(tmp))
 			}
+			fmt.Printf("dv: %d\n", tmp)
 			mem.DisplacementValue = tmp
 			modOperand = mem
 		}
@@ -139,16 +144,21 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 		fmt.Printf("Entro\n")
 	} else {
 		if has[Bits_Data] {
+
+			//	data := it.ParseDataValue(r, has[Bits_Data], w, s)
 			flags := 0
+
 			value := int(bits[Bits_Data])
 			if w {
 				flags |= int(Bits_W)
 				dataH, _ := r.ReadByte()
-				fullInstrBytes = append(fullInstrBytes, dataH)
 				valInt := (value) + (int(dataH) << 8)
 				value = int(int16(valInt))
 			}
 			imm, _ := it.ResolveImmediate(value, flags)
+
+			fmt.Printf("imm: %v\n", imm)
+
 			// If we have already modOperand, then we are moving a literal to a EA,
 			// therefore, the literal goes to reg
 			if modOperand.Type == Operand_None {
@@ -189,12 +199,39 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 	instr.Mode = Mode(mod)
 	instr.Direction = d
 	instr.Wide = w
-	/*
-		for _, b := range fullInstrBytes {
-			fmt.Printf("%08b ", b)
-		}
-		fmt.Println("")
-		fmt.Printf("%s\n", instr)
-	*/
+
+	printBytes(r.EndByteRecord(), instr)
 	return instr, nil
 }
+
+func printBytes(fullInstrBytes []byte, instr Instruction) {
+	fmt.Println("all bytes read")
+	for _, b := range fullInstrBytes {
+		fmt.Printf("%08b ", b)
+	}
+	fmt.Println("")
+	fmt.Printf("%v\n", instr)
+}
+
+/*
+func (it *InstructionTable) ParseDataValue(r *reader.Reader, exists, wide, signedExtended bool) int {
+	if !exists {
+		return 0
+	}
+
+	var value int
+	if wide {
+		dataL, _ := r.ReadByte()
+		dataH, _ := r.ReadByte()
+
+		valInt := (int(dataH) << 8) | int(dataL)
+		return int(int16(valInt))
+	} else {
+		dataL, _ := r.ReadByte()
+		if signedExtended {
+			value = int(int8(dataL))
+		}
+	}
+	return value
+}
+*/
