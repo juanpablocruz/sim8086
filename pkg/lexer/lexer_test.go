@@ -735,6 +735,36 @@ func TestLexer_Listing41(t *testing.T) {
 						}},
 					},
 				},
+				{
+					str: "add bx, [bp]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							DisplacementValue: 0,
+							Displacement:      8,
+							Terms: [2]instruction.Register{
+								{Name: "BP"},
+							},
+						}},
+					},
+				},
+				{
+					str: "add si, 2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "SI"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 2},
+						},
+					},
+				},
 			},
 		},
 	}

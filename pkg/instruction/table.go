@@ -37,7 +37,7 @@ func (it *InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, er
 }
 
 func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
-	// fmt.Printf("TryDecode: %08b\n", r.Curr)
+	fmt.Printf("TryDecode: %08b - %s - %08b\n", r.Curr, GetMnemonic(encoding.Op), encoding.Bits[0].Value)
 	instr := Instruction{}
 
 	bitIndx := 0
@@ -51,21 +51,12 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 			break
 		}
 		if bit.Usage == Bits_Literal {
-			fmt.Printf("Op: %d, Test: %08b, current: %08b, bitSize: %d\n", encoding.Op, bit.Value, r.Curr, bit.BitCount)
-			if bit.Value == 0 {
-				bitIndx += int(bit.BitCount)
-				continue
-			}
-			masked := r.Curr >> (8 - bit.BitCount)
-
-			if bit.Value&masked == bit.Value && bit.Value&masked == masked {
-				instr.Op = (encoding.Op)
-				bitIndx += int(bit.BitCount)
-				valid = true
-			} else {
+			mask := (byte(1<<bit.BitCount) - 1) << byte(8-bitIndx-int(bit.BitCount))
+			if (r.Curr & mask) != ((bit.Value << (8 - bit.BitCount)) & mask) {
 				valid = false
 				// break
 			}
+			bitIndx += int(bit.BitCount)
 		} else if bit.BitCount == 0 {
 			bits[bit.Usage] |= bit.Value
 			has[bit.Usage] = true
@@ -87,19 +78,22 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 				bitIndx++
 			}
 
-			// fmt.Printf("%d - %08b\n", bit.Usage, r.Curr)
+			var out bytes.Buffer
 			val := (r.Curr & byte(mask)) >> (8 - byte(bitIndx))
+			out = printBit(out, bit.Usage, val)
+			// fmt.Printf("%08b\n%s", r.Curr, out.String())
 			bits[bit.Usage] |= val
 			has[bit.Usage] = true
 
 		}
 	}
 	if !valid {
+		r.EndInstructionAndPrint()
 		return Instruction{}, nil
 	}
-	// instr.Op = encoding.Op
+	instr.Op = encoding.Op
 	// r.PrintInstruction()
-	// debugBits(bits)
+	debugBits(bits)
 	mod := bits[Bits_MOD]
 	rm := bits[Bits_RM]
 	w := bits[Bits_W] == 1
@@ -108,6 +102,9 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 
 	hasDirectAddr := (mod == 0b00) && (rm == 0b110)
 	has[Bits_Disp] = ((has[Bits_Disp]) || (mod == 0b10) || hasDirectAddr)
+
+	dataIsW := ((bits[Bits_WMakesDataW] == 1) && !s && w)
+	fmt.Printf("dataIsW: %v\n", dataIsW)
 
 	var regOperand InstructionOperand
 	if has[Bits_REG] {
@@ -146,7 +143,6 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 		}
 	}
 
-	// fmt.Printf("data: %v disp: %v mod: %v\n", has[Bits_Data], has[Bits_Disp], has[Bits_MOD])
 	if has[Bits_Data] && has[Bits_Disp] && !has[Bits_MOD] {
 	} else {
 		if has[Bits_Data] {
@@ -168,23 +164,12 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 		}
 	}
 
-	switch modOperand.Type {
-	case Operand_Immediate:
-		if d {
-			instr.Reg = regOperand
-			instr.RM = modOperand
-		} else {
-			instr.RM = regOperand
-			instr.Reg = modOperand
-		}
-	case Operand_Memory, Operand_Register:
-		if !d {
-			instr.RM = regOperand
-			instr.Reg = modOperand
-		} else {
-			instr.Reg = regOperand
-			instr.RM = modOperand
-		}
+	if !d {
+		instr.RM = regOperand
+		instr.Reg = modOperand
+	} else {
+		instr.Reg = regOperand
+		instr.RM = modOperand
 	}
 
 	instr.Mode = Mode(mod)
@@ -192,16 +177,21 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 	instr.Wide = w
 
 	r.EndInstructionAndPrint()
+	fmt.Printf("Returning: %s\n\n\n", instr.String())
 
 	return instr, nil
 }
 
 func (it *InstructionTable) ParseDataValue(r *reader.Reader, exists, wide, signedExtended bool) int {
+	fmt.Printf("exists: %v, wide: %v, signedExtended: %v\n", exists, wide, signedExtended)
 	if !exists {
 		return 0
 	}
 	if wide {
 		dataL, _ := r.ReadByte()
+		if signedExtended {
+			return int(dataL)
+		}
 		dataH, _ := r.ReadByte()
 
 		valInt := (int(dataH) << 8) | int(dataL)
