@@ -647,8 +647,8 @@ func TestLexer_Listing40(t *testing.T) {
 					str: "mov ax, [2555]",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
-						Wide:      false,
+						Direction: true,
+						Wide:      true,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
 						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
@@ -658,11 +658,52 @@ func TestLexer_Listing40(t *testing.T) {
 					},
 				},
 				// mov ax, [16]
-
+				{
+					str: "mov ax, [16]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 16,
+						}},
+					},
+				},
 				// Accumulator-to-memory
 				// mov [2554], ax
-
+				{
+					str: "mov [2554], ax",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 2554,
+						}},
+					},
+				},
 				// mov [15], ax
+
+				{
+					str: "mov [15], ax",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_mov,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							Displacement:      0,
+							DisplacementValue: 15,
+						}},
+					},
+				},
 			},
 		},
 	}

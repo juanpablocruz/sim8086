@@ -110,13 +110,15 @@ func (r *Reader) ReadByte() (byte, error) {
 	r.SegmentOffset++
 
 	r.byteRecord = append(r.byteRecord, r.Curr)
-	r.PrintInstruction()
 	return r.Curr, nil
 }
 
 func (r *Reader) Rewind(offset int) {
+	for i := r.SegmentOffset; i > offset; i-- {
+		r.byteRecord = r.byteRecord[:len(r.byteRecord)-1]
+	}
 	r.SegmentOffset = offset
-	r.Curr = r.Data[r.SegmentOffset]
+	r.Curr = r.Data[r.SegmentOffset-1]
 	r.SegmentBase = r.SegmentOffset
 }
 
@@ -132,14 +134,14 @@ func (r *Reader) Dump() string {
 }
 
 func (r *Reader) EndInstructionAndPrint() {
-	r.PrintInstruction()
+	// r.PrintInstruction()
 	r.byteRecord = []byte{}
 }
 
 func (r *Reader) PrintInstruction() {
 	fmt.Println("all bytes read")
 	for _, b := range r.byteRecord {
-		fmt.Printf("%08b ", b)
+		fmt.Printf("%08b(%x) ", b, b)
 	}
 	fmt.Println("")
 }

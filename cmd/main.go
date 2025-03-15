@@ -33,7 +33,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%s\n", rd.Dump())
+	// fmt.Printf("%s\n", rd.Dump())
 	defer rd.Close()
 
 	allInstr := []instruction.Instruction{}
