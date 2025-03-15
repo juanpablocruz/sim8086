@@ -1,6 +1,7 @@
 package lexer_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/juanpablocruz/sim8086/pkg/instruction"
@@ -18,62 +19,69 @@ type instructionTest struct {
 }
 
 func validateInstructions(t *testing.T, tests []instructionTest) {
+	t.Helper()
 	for _, tt := range tests {
-
 		r := reader.Reader{}
 		r.Data = tt.input
 		l := lexer.New(&r)
 		i := 0
 		for i < len(tt.want) {
-			got := l.NextInstruction()
-			if got.Op != tt.want[i].instruction.Op {
-				t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].instruction.Op)
-			}
-			if got.Direction != tt.want[i].instruction.Direction {
-				t.Errorf("NextToken() invalid direction. got=%v want=%v", got.Direction, tt.want[i].instruction.Direction)
-			}
-			if got.Wide != tt.want[i].instruction.Wide {
-				t.Errorf("NextToken() invalid wide. got=%v want=%v", got.Wide, tt.want[i].instruction.Wide)
-			}
-			if got.Mode != tt.want[i].instruction.Mode {
-				t.Errorf("NextToken() invalid Mode. got=%v want=%v", got.Mode, tt.want[i].instruction.Mode)
-			}
-			if got.String() != tt.want[i].str {
-				t.Errorf("NextToken() invalid String representation. got=%s want=%s", got.String(), tt.want[i].str)
-			}
-			if got.Reg.Type != tt.want[i].instruction.Reg.Type {
-				t.Errorf("NextToken() invalid Reg Type. got=%v want=%v", got.Reg.Type, tt.want[i].instruction.Reg.Type)
-			}
-			if got.Reg.Name != tt.want[i].instruction.Reg.Name {
-				t.Errorf("NextToken() invalid Reg. got=%v want=%v", got.Reg.Name, tt.want[i].instruction.Reg.Name)
-			}
-			if got.RM.Type != tt.want[i].instruction.RM.Type {
-				t.Errorf("NextToken() invalid RM Type. got=%v want=%v", got.RM.Type, tt.want[i].instruction.RM.Type)
-			}
-			switch got.RM.Type {
-			case instruction.Operand_Register:
-				if got.RM.Name != tt.want[i].instruction.RM.Name {
-					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Name, tt.want[i].instruction.RM.Name)
+			t.Run(tt.want[i].str, func(t *testing.T) {
+				got := l.NextInstruction()
+				if got.Op != tt.want[i].instruction.Op {
+					t.Errorf("NextToken() invalid opcode. got=%08b want=%08b", got.Op, tt.want[i].instruction.Op)
 				}
-			case instruction.Operand_Immediate:
-				if got.RM.Value != tt.want[i].instruction.RM.Value {
-					t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Value, tt.want[i].instruction.RM.Value)
+				if got.Direction != tt.want[i].instruction.Direction {
+					t.Errorf("NextToken() invalid direction. got=%v want=%v", got.Direction, tt.want[i].instruction.Direction)
 				}
-			case instruction.Operand_Memory:
-				if got.RM.Displacement != tt.want[i].instruction.RM.Displacement {
-					t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].instruction.RM.Displacement)
+				if got.Wide != tt.want[i].instruction.Wide {
+					t.Errorf("NextToken() invalid wide. got=%v want=%v", got.Wide, tt.want[i].instruction.Wide)
 				}
-				if got.RM.DisplacementValue != tt.want[i].instruction.RM.DisplacementValue {
-					t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].instruction.RM.DisplacementValue)
+				if got.Mode != tt.want[i].instruction.Mode {
+					t.Errorf("NextToken() invalid Mode. got=%v want=%v", got.Mode, tt.want[i].instruction.Mode)
 				}
-				if len(got.RM.Terms) != len(tt.want[i].instruction.RM.Terms) {
-					t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].instruction.RM.Terms))
+				if got.String() != tt.want[i].str {
+					t.Errorf("NextToken() invalid String representation. got=%s want=%s", got.String(), tt.want[i].str)
 				}
-				for i2, term := range got.RM.Terms {
-					if term.Code > 0 && tt.want[i].instruction.RM.Terms[i2].Code > 0 && term.Name != tt.want[i].instruction.RM.Terms[i2].Name {
-						t.Errorf("NextToken() invalid RM Term %d. got=%v want=%v", i2, term, tt.want[i].instruction.RM.Terms[i2])
+				if got.Reg.Type != tt.want[i].instruction.Reg.Type {
+					t.Errorf("NextToken() invalid Reg Type. got=%v want=%v", got.Reg.Type, tt.want[i].instruction.Reg.Type)
+				}
+				if got.Reg.Name != tt.want[i].instruction.Reg.Name {
+					t.Errorf("NextToken() invalid Reg. got=%v want=%v", got.Reg.Name, tt.want[i].instruction.Reg.Name)
+				}
+				if got.RM.Type != tt.want[i].instruction.RM.Type {
+					t.Errorf("NextToken() invalid RM Type. got=%v want=%v", got.RM.Type, tt.want[i].instruction.RM.Type)
+				}
+				switch got.RM.Type {
+				case instruction.Operand_Register:
+					if got.RM.Name != tt.want[i].instruction.RM.Name {
+						t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Name, tt.want[i].instruction.RM.Name)
+					}
+				case instruction.Operand_Immediate:
+					if got.RM.Value != tt.want[i].instruction.RM.Value {
+						t.Errorf("NextToken() invalid RM. got=%v want=%v", got.RM.Value, tt.want[i].instruction.RM.Value)
+						fmt.Printf("got RM: %v Reg: %v\n", got.RM.Value, got.Reg)
+					}
+				case instruction.Operand_Memory:
+					if got.RM.Displacement != tt.want[i].instruction.RM.Displacement {
+						t.Errorf("NextToken() invalid RM Displacement. got=%v want=%v", got.RM.Displacement, tt.want[i].instruction.RM.Displacement)
+					}
+					if got.RM.DisplacementValue != tt.want[i].instruction.RM.DisplacementValue {
+						t.Errorf("NextToken() invalid RM Displacement Value. got=%v want=%v", got.RM.DisplacementValue, tt.want[i].instruction.RM.DisplacementValue)
+					}
+					if len(got.RM.Terms) != len(tt.want[i].instruction.RM.Terms) {
+						t.Errorf("NextToken() invalid RM Terms length. got=%v want=%v", len(got.RM.Terms), len(tt.want[i].instruction.RM.Terms))
+					}
+					for i2, term := range got.RM.Terms {
+						if term.Code > 0 && tt.want[i].instruction.RM.Terms[i2].Code > 0 && term.Name != tt.want[i].instruction.RM.Terms[i2].Name {
+							t.Errorf("NextToken() invalid RM Term %d. got=%v want=%v", i2, term, tt.want[i].instruction.RM.Terms[i2])
+						}
 					}
 				}
+			})
+			if t.Failed() {
+				fmt.Println("Failed")
+				t.Fatal("Stop")
 			}
 			i++
 		}
@@ -238,10 +246,9 @@ func TestLexer_Listing39(t *testing.T) {
 	tests := []instructionTest{
 		{
 			input: []byte{
-				0x89, 0xde, 0x88, 0xc6, 0xb1, 0x0c, 0xb5, 0xf4, 0xb9, 0x0c, 0x00, 0xb9, 0xf4,
-				0xff, 0xba, 0x6c, 0x0f, 0xba, 0x94, 0xf0, 0x8a, 0x00, 0x8b, 0x1b, 0x8b, 0x56,
-				0x00, 0x8a, 0x60, 0x04, 0x8a, 0x80, 0x87, 0x13, 0x89, 0x09, 0x88, 0x0a, 0x88,
-				0x6e, 0x00,
+				0x89, 0xde, 0x88, 0xc6, 0xb1, 0xc, 0xb5, 0xf4, 0xb9, 0xc, 0x0, 0xb9, 0xf4, 0xff,
+				0xba, 0x6c, 0xf, 0xba, 0x94, 0xf0, 0x8a, 0x0, 0x8b, 0x1b, 0x8b, 0x56, 0x0, 0x8a,
+				0x60, 0x4, 0x8a, 0x80, 0x87, 0x13, 0x89, 0x9, 0x88, 0xa, 0x88, 0x6e, 0x0,
 			},
 			want: []testStruct{
 				// Register-to-register
@@ -332,8 +339,8 @@ func TestLexer_Listing39(t *testing.T) {
 						RM:        instruction.InstructionOperand{Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 3948}},
 					},
 				},
-				// mov dx, -3948
 				{
+					// mov dx, -3948 {
 					str: "mov dx, -3948",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,

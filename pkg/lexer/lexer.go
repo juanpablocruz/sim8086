@@ -41,6 +41,7 @@ func (l *Lexer) NextInstruction() instruction.Instruction {
 		return tok
 	}
 
+	l.r.BeginByteRecord()
 	l.readByte()
 
 	return in

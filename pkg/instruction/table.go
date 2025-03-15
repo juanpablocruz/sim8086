@@ -1,6 +1,7 @@
 package instruction
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/juanpablocruz/sim8086/pkg/reader"
@@ -14,7 +15,7 @@ func New8086InstructionTable() InstructionTable {
 	}
 }
 
-func (it InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, error) {
+func (it *InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, error) {
 	instr := Instruction{}
 
 	startingAddress := r.SegmentOffset
@@ -37,10 +38,9 @@ func (it InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, err
 	return instr, nil
 }
 
-func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
+func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
 	// fmt.Printf("TryDecode: %08b\n", r.Curr)
 	instr := Instruction{}
-	r.BeginByteRecord()
 
 	bitIndx := 0
 
@@ -92,10 +92,11 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 		return Instruction{}, nil
 	}
 
+	debugBits(bits)
 	mod := bits[Bits_MOD]
 	rm := bits[Bits_RM]
 	w := bits[Bits_W] == 1
-	// s := bits[Bits_S] == 1
+	s := bits[Bits_S] == 1
 	d := bits[Bits_D] == 1
 
 	hasDirectAddr := (mod == 0b00) && (rm == 0b110)
@@ -133,7 +134,6 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			case 16:
 				tmp = int(int16(tmp))
 			}
-			fmt.Printf("dv: %d\n", tmp)
 			mem.DisplacementValue = tmp
 			modOperand = mem
 		}
@@ -144,20 +144,14 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 		fmt.Printf("Entro\n")
 	} else {
 		if has[Bits_Data] {
-
-			//	data := it.ParseDataValue(r, has[Bits_Data], w, s)
-			flags := 0
-
-			value := int(bits[Bits_Data])
-			if w {
+			data := it.ParseDataValue(r, has[Bits_Data], w, s)
+			r.PrintInstruction()
+			flags := int(0)
+			if bits[Bits_W] == 1 {
 				flags |= int(Bits_W)
-				dataH, _ := r.ReadByte()
-				valInt := (value) + (int(dataH) << 8)
-				value = int(int16(valInt))
 			}
-			imm, _ := it.ResolveImmediate(value, flags)
 
-			fmt.Printf("imm: %v\n", imm)
+			imm, _ := it.ResolveImmediate(data, flags)
 
 			// If we have already modOperand, then we are moving a literal to a EA,
 			// therefore, the literal goes to reg
@@ -170,14 +164,6 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 	}
 
 	switch modOperand.Type {
-	case Operand_Register:
-		if !d {
-			instr.RM = regOperand
-			instr.Reg = modOperand
-		} else {
-			instr.Reg = regOperand
-			instr.RM = modOperand
-		}
 	case Operand_Immediate:
 		if d {
 			instr.RM = regOperand
@@ -186,7 +172,7 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 			instr.Reg = regOperand
 			instr.RM = modOperand
 		}
-	case Operand_Memory:
+	case Operand_Memory, Operand_Register:
 		if !d {
 			instr.RM = regOperand
 			instr.Reg = modOperand
@@ -200,26 +186,17 @@ func (it InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Rea
 	instr.Direction = d
 	instr.Wide = w
 
-	printBytes(r.EndByteRecord(), instr)
+	r.EndInstructionAndPrint()
+	fmt.Printf("%v\n", instr)
+	fmt.Println("")
+	fmt.Println("")
 	return instr, nil
 }
 
-func printBytes(fullInstrBytes []byte, instr Instruction) {
-	fmt.Println("all bytes read")
-	for _, b := range fullInstrBytes {
-		fmt.Printf("%08b ", b)
-	}
-	fmt.Println("")
-	fmt.Printf("%v\n", instr)
-}
-
-/*
 func (it *InstructionTable) ParseDataValue(r *reader.Reader, exists, wide, signedExtended bool) int {
 	if !exists {
 		return 0
 	}
-
-	var value int
 	if wide {
 		dataL, _ := r.ReadByte()
 		dataH, _ := r.ReadByte()
@@ -228,10 +205,61 @@ func (it *InstructionTable) ParseDataValue(r *reader.Reader, exists, wide, signe
 		return int(int16(valInt))
 	} else {
 		dataL, _ := r.ReadByte()
+
 		if signedExtended {
-			value = int(int8(dataL))
+			return int(int8(dataL))
 		}
+
+		return int(dataL)
 	}
-	return value
 }
-*/
+
+func debugBits(bits []byte) {
+	var out bytes.Buffer
+	for t, bit := range bits {
+		switch t {
+		case int(Bits_Count):
+			out.WriteString("Bits_Count: ")
+		case int(Bits_D):
+			out.WriteString("Bits_D: ")
+		case int(Bits_W):
+			out.WriteString("Bits_W: ")
+		case int(Bits_S):
+			out.WriteString("Bits_S: ")
+		case int(Bits_RelJMPDisp):
+			out.WriteString("Bits_RelJMPDisp: ")
+		case int(Bits_WMakesDataW):
+			out.WriteString("Bits_WMakesDataW: ")
+		case int(Bits_SR):
+			out.WriteString("Bits_SR: ")
+		case int(Bits_Z):
+			out.WriteString("Bits_Z: ")
+		case int(Bits_End):
+			out.WriteString("Bits_End: ")
+		case int(Bits_V):
+			out.WriteString("Bits_V: ")
+		case int(Bits_Data):
+			out.WriteString("Bits_Data: ")
+		case int(Bits_Disp):
+			out.WriteString("Bits_Disp: ")
+		case int(Bits_DispAlwaysW):
+			out.WriteString("Bits_DispAlwaysW: ")
+		case int(Bits_Far):
+			out.WriteString("Bits_Far: ")
+		case int(Bits_Literal):
+			out.WriteString("Bits_Literal: ")
+		case int(Bits_MOD):
+			out.WriteString("Bits_MOD: ")
+		case int(Bits_REG):
+			out.WriteString("Bits_REG: ")
+		case int(Bits_RM):
+			out.WriteString("Bits_RM: ")
+		case int(Bits_RMRegAlwaysW):
+			out.WriteString("Bits_RMRegAlwaysW: ")
+		default:
+			out.WriteString(fmt.Sprintf("[%d]: ", t))
+		}
+		out.WriteString(fmt.Sprintf("%08b (%d)\n", bit, bit))
+	}
+	fmt.Println(out.String())
+}
