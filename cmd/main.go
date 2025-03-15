@@ -13,27 +13,32 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Printf("exactly one argument required")
-		fmt.Printf("Usage: sim8086 asmfile")
+	// execFlag := flag.Bool("exec", false, "-exec to interprete the code")
+	showClocksFlag := flag.Bool("showclocks", false, "-showclocks to show cycles for each instruction")
+	dumpMemoryFlag := flag.Bool("dump", false, "-dump to dump memory")
+	flag.Parse()
+	args := flag.Args()
+
+	if len(args) < 1 {
+		fmt.Println("Error: Missing required input file")
+		fmt.Println("Usage: sim8086 asmfile")
 		os.Exit(1)
 	}
 
-	// execFlag := flag.Bool("exec", false, "-exec to interprete the code")
-	showClocksFlag := flag.Bool("showclocks", false, "-showclocks to show cycles for each instruction")
-
+	fileName := args[0]
 	flags := uint32(0)
+
 	if *showClocksFlag {
 		flags |= options.SimFlag_ShowClocks
 	}
-
-	fileName := os.Args[1]
 
 	rd, err := reader.New(fileName)
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Printf("%s\n", rd.Dump())
+	if *dumpMemoryFlag {
+		fmt.Printf("%s\n", rd.Dump())
+	}
 	defer rd.Close()
 
 	allInstr := []instruction.Instruction{}

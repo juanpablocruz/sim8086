@@ -7,6 +7,7 @@ type InstructionTable struct {
 }
 
 var InstructionTable8086 = []InstructionEncoding{
+	// MOV
 	{Op_mov, []InstructionBits{
 		{Bits_Literal, 6, 0, 0b100010},
 		{Usage: Bits_D, BitCount: 1},
@@ -50,7 +51,7 @@ var InstructionTable8086 = []InstructionEncoding{
 	{
 		Op_mov, []InstructionBits{
 			{Bits_Literal, 7, 0, 0b1010001},
-			{Usage: Bits_W, BitCount: 1},
+			{Bits_W, 1, 0, 0},
 			{Bits_Disp, 0, 0, 0},
 			{Bits_DispAlwaysW, 0, 0, 0b1},
 			{Bits_REG, 0, 0, 0},
@@ -62,16 +63,205 @@ var InstructionTable8086 = []InstructionEncoding{
 	{
 		Op_mov, []InstructionBits{
 			{Bits_Literal, 6, 0, 0b100011},
-			{Usage: Bits_D, BitCount: 1},
+			{Bits_D, 1, 0, 0},
 			{Bits_Literal, 1, 0, 0b0},
 			{Bits_MOD, 0, 0, 0},
 			{Bits_Literal, 1, 0, 0b0},
-			{Usage: Bits_SR, BitCount: 2},
+			{Bits_SR, 2, 0, 0},
 			{Bits_W, 0, 0, 0b1},
 		},
 	},
+
+	// PUSH
+	{Op_push, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b11111111},
+		{Bits_MOD, 3, 0, 0},
+		{Bits_Literal, 3, 0, 0b0},
+		{Bits_RM, 3, 0, 0},
+		{Bits_W, 0, 0, 1},
+		{Bits_D, 0, 0, 1},
+	}},
+	{Op_push, []InstructionBits{
+		{Bits_Literal, 5, 0, 0b01010},
+		{Bits_REG, 3, 0, 0},
+		{Bits_W, 0, 0, 1},
+		{Bits_D, 0, 0, 1},
+	}},
+	{Op_push, []InstructionBits{
+		{Bits_Literal, 3, 0, 0b000},
+		{Bits_SR, 2, 0, 0},
+		{Bits_Literal, 3, 0, 0b110},
+		{Bits_W, 0, 0, 1},
+		{Bits_D, 0, 0, 1},
+	}},
+
+	// ADD
+	{Op_add, []InstructionBits{
+		{Bits_Literal, 6, 0, 0b000000},
+		{Bits_D, 1, 0, 0},
+		{Bits_W, 1, 0, 0},
+		{Bits_MOD, 2, 0, 0},
+		{Bits_REG, 3, 0, 0},
+		{Bits_RM, 3, 0, 0},
+	}},
+	{Op_add, []InstructionBits{
+		{Bits_Literal, 6, 0, 0b100000},
+		{Bits_S, 1, 0, 0},
+		{Bits_W, 1, 0, 0},
+		{Bits_MOD, 2, 0, 0},
+		{Bits_Literal, 3, 0, 0b000},
+		{Bits_RM, 3, 0, 0},
+		{Bits_Data, 0, 0, 0},
+		{Bits_WMakesDataW, 0, 0, 1},
+	}},
+	{Op_add, []InstructionBits{
+		{Bits_Literal, 7, 0, 0b0000010},
+		{Bits_W, 1, 0, 0},
+		{Bits_Data, 0, 0, 0},
+		{Bits_WMakesDataW, 0, 0, 1},
+		{Bits_REG, 0, 0, 0b0},
+		{Bits_D, 0, 0, 1},
+	}},
+
+	// SUB
+	{Op_sub, []InstructionBits{
+		{Bits_Literal, 6, 0, 0b001010},
+		{Bits_D, 1, 0, 0},
+		{Bits_W, 1, 0, 0},
+		{Bits_MOD, 2, 0, 0},
+		{Bits_REG, 3, 0, 0},
+		{Bits_RM, 3, 0, 0},
+	}},
+	{Op_sub, []InstructionBits{
+		{Bits_Literal, 6, 0, 0b100000},
+		{Bits_S, 1, 0, 0},
+		{Bits_W, 1, 0, 0},
+		{Bits_MOD, 2, 0, 0},
+		{Bits_Literal, 3, 0, 0b101},
+		{Bits_RM, 3, 0, 0},
+		{Bits_Data, 0, 0, 0},
+		{Bits_WMakesDataW, 0, 0, 1},
+	}},
+	{Op_sub, []InstructionBits{
+		{Bits_Literal, 7, 0, 0b0010110},
+		{Bits_W, 1, 0, 0},
+		{Bits_Data, 0, 0, 0},
+		{Bits_WMakesDataW, 0, 0, 1},
+		{Bits_REG, 0, 0, 0b0},
+		{Bits_D, 0, 0, 1},
+	}},
+
+	// CMP
+	{Op_sub, []InstructionBits{
+		{Bits_Literal, 6, 0, 0b001110},
+		{Bits_D, 1, 0, 0},
+		{Bits_W, 1, 0, 0},
+		{Bits_MOD, 2, 0, 0},
+		{Bits_REG, 3, 0, 0},
+		{Bits_RM, 3, 0, 0},
+	}},
+	{Op_sub, []InstructionBits{
+		{Bits_Literal, 6, 0, 0b100000},
+		{Bits_S, 1, 0, 0},
+		{Bits_W, 1, 0, 0},
+		{Bits_MOD, 2, 0, 0},
+		{Bits_Literal, 3, 0, 0b101},
+		{Bits_RM, 3, 0, 0},
+		{Bits_Data, 0, 0, 0},
+		{Bits_WMakesDataW, 0, 0, 1},
+	}},
+	{Op_sub, []InstructionBits{
+		{Bits_Literal, 7, 0, 0b0011110},
+		{Bits_W, 1, 0, 0},
+		{Bits_Data, 0, 0, 0},
+		{Bits_WMakesDataW, 0, 0, 1},
+		{Bits_REG, 0, 0, 0b0},
+		{Bits_D, 0, 0, 1},
+	}},
+
+	// Jumps
+	{Op_je, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110100},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jl, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111100},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jle, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111110},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jb, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110010},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jo, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110000},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_js, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111000},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jne, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110101},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jnl, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111101},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jg, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111111},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jnp, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111011},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jno, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110001},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jns, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111001},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_loop, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b11100010},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_loopz, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b11100001},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_loopnz, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b11100000},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jcxz, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b11100011},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+
 	/*
-		{Op_push, []InstructionBits{}},
 		{Op_pop, []InstructionBits{}},
 		{Op_xchg, []InstructionBits{}},
 		{Op_in, []InstructionBits{}},

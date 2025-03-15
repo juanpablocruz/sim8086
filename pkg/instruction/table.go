@@ -44,12 +44,14 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 
 	bits := make([]byte, Bits_Count)
 	has := make([]bool, Bits_Count)
+
 	valid := true
 	for _, bit := range encoding.Bits {
 		if bit.Usage == Bits_End {
 			break
 		}
 		if bit.Usage == Bits_Literal {
+			fmt.Printf("Op: %d, Test: %08b, current: %08b, bitSize: %d\n", encoding.Op, bit.Value, r.Curr, bit.BitCount)
 			if bit.Value == 0 {
 				bitIndx += int(bit.BitCount)
 				continue
@@ -62,6 +64,7 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 				valid = true
 			} else {
 				valid = false
+				// break
 			}
 		} else if bit.BitCount == 0 {
 			bits[bit.Usage] |= bit.Value
@@ -94,7 +97,9 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 	if !valid {
 		return Instruction{}, nil
 	}
-
+	// instr.Op = encoding.Op
+	// r.PrintInstruction()
+	// debugBits(bits)
 	mod := bits[Bits_MOD]
 	rm := bits[Bits_RM]
 	w := bits[Bits_W] == 1
@@ -166,11 +171,11 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 	switch modOperand.Type {
 	case Operand_Immediate:
 		if d {
-			instr.RM = regOperand
-			instr.Reg = modOperand
-		} else {
 			instr.Reg = regOperand
 			instr.RM = modOperand
+		} else {
+			instr.RM = regOperand
+			instr.Reg = modOperand
 		}
 	case Operand_Memory, Operand_Register:
 		if !d {
@@ -185,6 +190,8 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 	instr.Mode = Mode(mod)
 	instr.Direction = d
 	instr.Wide = w
+
+	r.EndInstructionAndPrint()
 
 	return instr, nil
 }

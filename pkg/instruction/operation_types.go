@@ -68,6 +68,7 @@ const (
 	Op_jl
 	Op_jle
 	Op_jb
+	Op_jo
 	Op_jbe
 	Op_jp
 	Op_js

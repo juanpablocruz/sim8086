@@ -282,7 +282,7 @@ func TestLexer_Listing39(t *testing.T) {
 					str: "mov cl, 12",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
+						Direction: true,
 						Wide:      false,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CL"}, Type: instruction.Operand_Register},
@@ -294,7 +294,7 @@ func TestLexer_Listing39(t *testing.T) {
 					str: "mov ch, -12",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
+						Direction: true,
 						Wide:      false,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CH"}, Type: instruction.Operand_Register},
@@ -308,7 +308,7 @@ func TestLexer_Listing39(t *testing.T) {
 					str: "mov cx, 12",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
+						Direction: true,
 						Wide:      true,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
@@ -320,7 +320,7 @@ func TestLexer_Listing39(t *testing.T) {
 					str: "mov cx, -12",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
+						Direction: true,
 						Wide:      true,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "CX"}, Type: instruction.Operand_Register},
@@ -332,7 +332,7 @@ func TestLexer_Listing39(t *testing.T) {
 					str: "mov dx, 3948",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
+						Direction: true,
 						Wide:      true,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
@@ -344,7 +344,7 @@ func TestLexer_Listing39(t *testing.T) {
 					str: "mov dx, -3948",
 					instruction: instruction.Instruction{
 						Op:        instruction.Op_mov,
-						Direction: false,
+						Direction: true,
 						Wide:      true,
 						Mode:      instruction.Memory,
 						Reg:       instruction.InstructionOperand{Register: instruction.Register{Name: "DX"}, Type: instruction.Operand_Register},
@@ -701,6 +701,37 @@ func TestLexer_Listing40(t *testing.T) {
 						Reg: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
 							Displacement:      0,
 							DisplacementValue: 15,
+						}},
+					},
+				},
+			},
+		},
+	}
+	validateInstructions(t, tests)
+}
+
+func TestLexer_Listing41(t *testing.T) {
+	tests := []instructionTest{
+		{
+			input: []byte{
+				0x3, 0x18, 0x3, 0x5e, 0x0, 0x83, 0xc6, 0x2, 0x83, 0xc5, 0x2, 0x83, 0xc1, 0x8, 0x3, 0x5e, 0x0, 0x3, 0x4f, 0x2, 0x2, 0x7a, 0x4, 0x3, 0x7b, 0x6, 0x1, 0x18, 0x1, 0x5e, 0x0, 0x1, 0x5e, 0x0, 0x1, 0x4f, 0x2, 0x0, 0x7a, 0x4, 0x1, 0x7b, 0x6, 0x80, 0x7, 0x22, 0x83, 0x82, 0xe8, 0x3, 0x1d, 0x3, 0x46, 0x0, 0x2, 0x0, 0x1, 0xd8, 0x0, 0xe0, 0x5, 0xe8, 0x3, 0x4, 0xe2, 0x4, 0x9, 0x2b, 0x18, 0x2b, 0x5e, 0x0, 0x83, 0xee, 0x2, 0x83, 0xed, 0x2, 0x83, 0xe9, 0x8, 0x2b, 0x5e, 0x0, 0x2b, 0x4f, 0x2, 0x2a, 0x7a, 0x4, 0x2b, 0x7b, 0x6, 0x29, 0x18, 0x29, 0x5e, 0x0, 0x29, 0x5e, 0x0, 0x29, 0x4f, 0x2, 0x28, 0x7a, 0x4, 0x29, 0x7b, 0x6, 0x80, 0x2f, 0x22, 0x83, 0x29, 0x1d, 0x2b, 0x46, 0x0, 0x2a, 0x0, 0x29, 0xd8, 0x28, 0xe0, 0x2d, 0xe8, 0x3, 0x2c, 0xe2, 0x2c, 0x9, 0x3b, 0x18, 0x3b, 0x5e, 0x0, 0x83, 0xfe, 0x2, 0x83, 0xfd, 0x2, 0x83, 0xf9, 0x8, 0x3b, 0x5e, 0x0, 0x3b, 0x4f, 0x2, 0x3a, 0x7a, 0x4, 0x3b, 0x7b, 0x6, 0x39, 0x18, 0x39, 0x5e, 0x0, 0x39, 0x5e, 0x0, 0x39, 0x4f, 0x2, 0x38, 0x7a, 0x4, 0x39, 0x7b, 0x6, 0x80, 0x3f, 0x22, 0x83, 0x3e, 0xe2, 0x12, 0x1d, 0x3b, 0x46, 0x0, 0x3a, 0x0, 0x39, 0xd8, 0x38, 0xe0, 0x3d, 0xe8, 0x3, 0x3c, 0xe2, 0x3c, 0x9, 0x75, 0x2, 0x75, 0xfc, 0x75, 0xfa, 0x75, 0xfc, 0x74, 0xfe, 0x7c, 0xfc, 0x7e, 0xfa, 0x72, 0xf8, 0x76, 0xf6, 0x7a, 0xf4, 0x70, 0xf2, 0x78, 0xf0, 0x75, 0xee, 0x7d, 0xec, 0x7f, 0xea, 0x73, 0xe8, 0x77, 0xe6, 0x7b, 0xe4, 0x71, 0xe2, 0x79, 0xe0, 0xe2, 0xde, 0xe1, 0xdc, 0xe0, 0xda, 0xe3, 0xd8,
+			},
+			want: []testStruct{
+				{
+					str: "add bx, [bx + si]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+							DisplacementValue: 0,
+							Displacement:      0,
+							Terms: [2]instruction.Register{
+								{Name: "BX"},
+								{Name: "SI"},
+							},
 						}},
 					},
 				},
