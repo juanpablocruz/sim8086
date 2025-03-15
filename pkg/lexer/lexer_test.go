@@ -765,6 +765,209 @@ func TestLexer_Listing41(t *testing.T) {
 						},
 					},
 				},
+				{
+					str: "add bp, 2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BP"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 2},
+						},
+					},
+				},
+				{
+					str: "add cx, 8",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "CX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 8},
+						},
+					},
+				},
+				// add bx, [bp + 0]
+				{
+					str: "add bx, [bp]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add cx, [bx + 2]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "CX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 2,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add bh, [bp + si + 4]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BH"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 4,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add di, [bp + di + 6]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "DI"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 6,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+									{Name: "DI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add [bx + si], bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 6,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add [bp], bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				// add [bp + 0], bx
+				{
+					str: "add [bp], bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add [bx + 2], cx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "CX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 2,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "add [bp + si + 4], bh",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_add,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BH"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 2,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
