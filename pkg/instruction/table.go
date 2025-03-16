@@ -37,7 +37,7 @@ func (it *InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, er
 }
 
 func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
-	fmt.Printf("TryDecode: %08b - %s - %08b\n", r.Curr, GetMnemonic(encoding.Op), encoding.Bits[0].Value)
+	// fmt.Printf("TryDecode: %08b - %s - %08b\n", r.Curr, GetMnemonic(encoding.Op), encoding.Bits[0].Value)
 	instr := Instruction{}
 
 	bitIndx := 0
@@ -52,9 +52,11 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 		}
 		if bit.Usage == Bits_Literal {
 			mask := (byte(1<<bit.BitCount) - 1) << byte(8-bitIndx-int(bit.BitCount))
-			if (r.Curr & mask) != ((bit.Value << (8 - bit.BitCount)) & mask) {
+			// fmt.Printf("mask: %08b, curr: %08b, val: %08b, maskedCur: %08b, maskedVal: %08b bitcount: %d\n",
+			//	mask, r.Curr, bit.Value, r.Curr&mask, ((bit.Value << (8 - bit.BitCount)) & mask), bit.BitCount)
+			// fmt.Printf("%08b, %d\n", (bit.Value << (8 - byte(bitIndx) - bit.BitCount)), bitIndx)
+			if (r.Curr & mask) != ((bit.Value << (8 - byte(bitIndx) - bit.BitCount)) & mask) {
 				valid = false
-				// break
 			}
 			bitIndx += int(bit.BitCount)
 		} else if bit.BitCount == 0 {
@@ -88,12 +90,12 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 		}
 	}
 	if !valid {
-		r.EndInstructionAndPrint()
+		// r.EndInstructionAndPrint()
 		return Instruction{}, nil
 	}
 	instr.Op = encoding.Op
 	// r.PrintInstruction()
-	debugBits(bits)
+	// debugBits(bits)
 	mod := bits[Bits_MOD]
 	rm := bits[Bits_RM]
 	w := bits[Bits_W] == 1
@@ -103,8 +105,8 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 	hasDirectAddr := (mod == 0b00) && (rm == 0b110)
 	has[Bits_Disp] = ((has[Bits_Disp]) || (mod == 0b10) || hasDirectAddr)
 
-	dataIsW := ((bits[Bits_WMakesDataW] == 1) && !s && w)
-	fmt.Printf("dataIsW: %v\n", dataIsW)
+	// dataIsW := ((bits[Bits_WMakesDataW] == 1) && !s && w)
+	// fmt.Printf("dataIsW: %v\n", dataIsW)
 
 	var regOperand InstructionOperand
 	if has[Bits_REG] {

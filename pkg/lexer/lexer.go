@@ -9,6 +9,7 @@ type Lexer struct {
 	readPosition int
 	position     int
 	ch           byte
+	isEOF        bool
 
 	r     *reader.Reader
 	table instruction.InstructionTable
@@ -23,13 +24,19 @@ func New(r *reader.Reader) *Lexer {
 }
 
 func (l *Lexer) readByte() {
-	l.r.ReadByte()
+	ch, err := l.r.ReadByte()
+	if err != nil {
+		l.isEOF = true
+		return
+	}
+	l.ch = ch
+	l.isEOF = false
 }
 
 func (l *Lexer) NextInstruction() instruction.Instruction {
 	var tok instruction.Instruction
 
-	if l.r.Curr == 0 {
+	if l.isEOF {
 		return tok
 	}
 

@@ -107,9 +107,15 @@ func (i Instruction) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(i.Op.String() + " ")
-
+	if i.IsArithmetic() && i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
+		if i.Wide {
+			out.WriteString("word ")
+		} else {
+			out.WriteString("byte ")
+		}
+	}
 	out.WriteString(i.Reg.String() + ", ")
-	if i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
+	if !i.IsArithmetic() && i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
 		if i.Wide {
 			out.WriteString("word ")
 		} else {
@@ -119,6 +125,15 @@ func (i Instruction) String() string {
 	out.WriteString(i.RM.String())
 
 	return out.String()
+}
+
+func (i Instruction) IsArithmetic() bool {
+	switch i.Op {
+	case Op_add, Op_sub:
+		return true
+	default:
+		return false
+	}
 }
 
 type InstructionOperand struct {
