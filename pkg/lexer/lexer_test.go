@@ -1579,6 +1579,735 @@ func TestLexer_Listing41(t *testing.T) {
 						},
 					},
 				},
+				{
+					str: "cmp bx, [bx + si]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      0,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp bx, [bp]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp si, 2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "SI"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 2},
+						},
+					},
+				},
+				{
+					str: "cmp bp, 2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BP"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 2},
+						},
+					},
+				},
+				{
+					str: "cmp cx, 8",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "CX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate, Immediate: instruction.Immediate{Value: 8},
+						},
+					},
+				},
+				{
+					str: "cmp bx, [bp]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp cx, [bx + 2]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "CX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 2,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp bh, [bp + si + 4]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BH"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 4,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp di, [bp + di + 6]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "DI"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 6,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+									{Name: "DI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp [bx + si], bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 6,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp [bp], bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				// cmp [bp + 0], bx
+				{
+					str: "cmp [bp], bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp [bx + 2], cx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "CX"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 2,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp [bp + si + 4], bh",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BH"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 4,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp [bp + di + 6], di",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "DI"}},
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 6,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+									{Name: "DI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp byte [bx], 34",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory,
+							EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      0,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+								},
+							},
+						},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate,
+							Immediate: instruction.Immediate{
+								Value: 34,
+							},
+						},
+					},
+				},
+				{
+					str: "cmp word [4834], 29",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory,
+							EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 4834,
+							},
+						},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate,
+							Immediate: instruction.Immediate{
+								Value: 29,
+							},
+						},
+					},
+				},
+				{
+					str: "cmp ax, [bp]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      8,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BP"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp al, [bx + si]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AL"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      0,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
+				{
+					str: "cmp ax, bx",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      true,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+					},
+				},
+				{
+					str: "cmp al, ah",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Reg,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AL"}},
+						RM:        instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AH"}},
+					},
+				},
+				{
+					str: "cmp ax, 1000",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate,
+							Immediate: instruction.Immediate{
+								Value: 1000,
+							},
+						},
+					},
+				},
+				{
+					str: "cmp al, -30",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AL"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate,
+							Immediate: instruction.Immediate{
+								Value: -30,
+							},
+						},
+					},
+				},
+				{
+					str: "cmp al, 9",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "AL"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Immediate,
+							Immediate: instruction.Immediate{
+								Value: 9,
+							},
+						},
+					},
+				},
+
+				{
+					str: "jne $+4",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jne,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jne $-2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jne,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jne $-4",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jne,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jne $-2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jne,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "je $+0",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_je,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jl $-2",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jl,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jle $-4",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jle,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jb $-6",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jb,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jbe $-8",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jbe,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jp $-10",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jp,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jo $-12",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jo,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "js $-14",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_js,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jne $-16",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jne,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jnl $-18",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jnl,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jg $-20",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jg,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jnb $-22",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jnb,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "ja $-24",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_ja,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jnp $-26",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jnp,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jno $-28",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jno,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jns $-30",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jns,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+
+				{
+					str: "loop $-32",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_loop,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "loopz $-34",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_loopz,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "loopnz $-36",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_loopnz,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+				{
+					str: "jcxz $-38",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_jcxz,
+						Direction: false,
+						Wide:      false,
+						Mode:      instruction.Memory,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Immediate},
+						RM:        instruction.InstructionOperand{},
+					},
+				},
+			},
+		},
+	}
+	validateInstructions(t, tests)
+}
+
+func TestLexer_Test(t *testing.T) {
+	tests := []instructionTest{
+		{
+			input: []byte{
+				0x3b, 0x5e, 0x0,
+			},
+			want: []testStruct{
+				{
+					str: "cmp bx, [bx + si]",
+					instruction: instruction.Instruction{
+						Op:        instruction.Op_cmp,
+						Direction: true,
+						Wide:      true,
+						Mode:      instruction.Displ8,
+						Reg:       instruction.InstructionOperand{Type: instruction.Operand_Register, Register: instruction.Register{Name: "BX"}},
+						RM: instruction.InstructionOperand{
+							Type: instruction.Operand_Memory, EffectiveAddressExpression: instruction.EffectiveAddressExpression{
+								Displacement:      0,
+								DisplacementValue: 0,
+								Terms: [2]instruction.Register{
+									{Name: "BX"},
+									{Name: "SI"},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}

@@ -152,7 +152,7 @@ var InstructionTable8086 = []InstructionEncoding{
 	}},
 
 	// CMP
-	{Op_sub, []InstructionBits{
+	{Op_cmp, []InstructionBits{
 		{Bits_Literal, 6, 0, 0b001110},
 		{Bits_D, 1, 0, 0},
 		{Bits_W, 1, 0, 0},
@@ -160,17 +160,17 @@ var InstructionTable8086 = []InstructionEncoding{
 		{Bits_REG, 3, 0, 0},
 		{Bits_RM, 3, 0, 0},
 	}},
-	{Op_sub, []InstructionBits{
+	{Op_cmp, []InstructionBits{
 		{Bits_Literal, 6, 0, 0b100000},
 		{Bits_S, 1, 0, 0},
 		{Bits_W, 1, 0, 0},
 		{Bits_MOD, 2, 0, 0},
-		{Bits_Literal, 3, 0, 0b101},
+		{Bits_Literal, 3, 0, 0b111},
 		{Bits_RM, 3, 0, 0},
 		{Bits_Data, 0, 0, 0},
 		{Bits_WMakesDataW, 0, 0, 1},
 	}},
-	{Op_sub, []InstructionBits{
+	{Op_cmp, []InstructionBits{
 		{Bits_Literal, 7, 0, 0b0011110},
 		{Bits_W, 1, 0, 0},
 		{Bits_Data, 0, 0, 0},
@@ -200,6 +200,16 @@ var InstructionTable8086 = []InstructionEncoding{
 		{Bits_Disp, 0, 0, 0},
 		{Bits_RelJMPDisp, 0, 0, 1},
 	}},
+	{Op_jbe, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110110},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jp, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01111010},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
 	{Op_jo, []InstructionBits{
 		{Bits_Literal, 8, 0, 0b01110000},
 		{Bits_Disp, 0, 0, 0},
@@ -222,6 +232,16 @@ var InstructionTable8086 = []InstructionEncoding{
 	}},
 	{Op_jg, []InstructionBits{
 		{Bits_Literal, 8, 0, 0b01111111},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_jnb, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110011},
+		{Bits_Disp, 0, 0, 0},
+		{Bits_RelJMPDisp, 0, 0, 1},
+	}},
+	{Op_ja, []InstructionBits{
+		{Bits_Literal, 8, 0, 0b01110111},
 		{Bits_Disp, 0, 0, 0},
 		{Bits_RelJMPDisp, 0, 0, 1},
 	}},

@@ -37,7 +37,7 @@ func (it *InstructionTable) DecodeInstruction(r *reader.Reader) (Instruction, er
 }
 
 func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Reader) (Instruction, error) {
-	// fmt.Printf("TryDecode: %08b - %s - %08b\n", r.Curr, GetMnemonic(encoding.Op), encoding.Bits[0].Value)
+	fmt.Printf("TryDecode: %08b - %s - %08b\n", r.Curr, GetMnemonic(encoding.Op), encoding.Bits[0].Value)
 	instr := Instruction{}
 
 	bitIndx := 0
@@ -94,8 +94,8 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 		return Instruction{}, nil
 	}
 	instr.Op = encoding.Op
-	// r.PrintInstruction()
-	// debugBits(bits)
+	r.PrintInstruction()
+	debugBits(bits)
 	mod := bits[Bits_MOD]
 	rm := bits[Bits_RM]
 	w := bits[Bits_W] == 1
@@ -147,7 +147,12 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 
 	if has[Bits_Data] && has[Bits_Disp] && !has[Bits_MOD] {
 	} else {
-		if has[Bits_Data] {
+		if has[Bits_RelJMPDisp] {
+			c, _ := r.ReadByte()
+			disp := int(int16(c))
+			imm, _ := it.ResolveImmediate(disp, Immediate_RelativeJumpDisplacement)
+			modOperand = imm
+		} else if has[Bits_Data] {
 			data := it.ParseDataValue(r, has[Bits_Data], w, s)
 			flags := int(0)
 			if bits[Bits_W] == 1 {
@@ -177,6 +182,7 @@ func (it *InstructionTable) TryDecode(encoding InstructionEncoding, r *reader.Re
 	instr.Mode = Mode(mod)
 	instr.Direction = d
 	instr.Wide = w
+	instr.Size = r.InstructionSize()
 
 	r.EndInstructionAndPrint()
 	fmt.Printf("Returning: %s\n\n\n", instr.String())

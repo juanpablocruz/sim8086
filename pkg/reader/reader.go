@@ -147,3 +147,7 @@ func (r *Reader) PrintInstruction() {
 	}
 	fmt.Println("")
 }
+
+func (r *Reader) InstructionSize() int {
+	return len(r.byteRecord)
+}

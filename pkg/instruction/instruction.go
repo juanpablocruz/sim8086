@@ -80,9 +80,12 @@ func (eae EffectiveAddressExpression) String() string {
 	return fmt.Sprintf("[%s]", out.String())
 }
 
+const Immediate_RelativeJumpDisplacement = 0x1
+
 type Immediate struct {
 	Value int
 	Flags int
+	Size  int
 }
 
 type Register struct {
@@ -95,6 +98,9 @@ func (r InstructionOperand) String() string {
 		return strings.ToLower(r.Name)
 	}
 	if r.Type == Operand_Immediate {
+		if r.Immediate.Flags&Immediate_RelativeJumpDisplacement == Immediate_RelativeJumpDisplacement {
+			return fmt.Sprintf("$%+d", r.Value+r.Size)
+		}
 		return fmt.Sprintf("%d", r.Value)
 	}
 	if r.Type == Operand_Memory {
@@ -106,30 +112,46 @@ func (r InstructionOperand) String() string {
 func (i Instruction) String() string {
 	var out bytes.Buffer
 
+	if i.Reg.Type == Operand_Immediate {
+		i.Reg.Size = i.Size
+	}
+	if i.RM.Type == Operand_Immediate {
+		i.RM.Size = i.Size
+	}
+
+	fmt.Printf("size: %d\n", i.Size)
 	out.WriteString(i.Op.String() + " ")
-	if i.IsArithmetic() && i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
-		if i.Wide {
-			out.WriteString("word ")
-		} else {
-			out.WriteString("byte ")
+
+	if i.Reg.Type != Operand_None {
+		if i.IsArithmetic() && i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
+			if i.Wide {
+				out.WriteString("word ")
+			} else {
+				out.WriteString("byte ")
+			}
 		}
+		out.WriteString(i.Reg.String())
 	}
-	out.WriteString(i.Reg.String() + ", ")
-	if !i.IsArithmetic() && i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
-		if i.Wide {
-			out.WriteString("word ")
-		} else {
-			out.WriteString("byte ")
+	if i.Reg.Type != Operand_None && i.RM.Type != Operand_None {
+		out.WriteString(", ")
+	}
+	if i.RM.Type != Operand_None {
+		if !i.IsArithmetic() && i.Reg.Type == Operand_Memory && i.RM.Type == Operand_Immediate {
+			if i.Wide {
+				out.WriteString("word ")
+			} else {
+				out.WriteString("byte ")
+			}
 		}
+		out.WriteString(i.RM.String())
 	}
-	out.WriteString(i.RM.String())
 
 	return out.String()
 }
 
 func (i Instruction) IsArithmetic() bool {
 	switch i.Op {
-	case Op_add, Op_sub:
+	case Op_add, Op_sub, Op_cmp:
 		return true
 	default:
 		return false
@@ -149,6 +171,7 @@ type Instruction struct {
 	Mode      Mode
 	Reg       InstructionOperand
 	RM        InstructionOperand
+	Size      int
 
 	Op OperationType
 }
