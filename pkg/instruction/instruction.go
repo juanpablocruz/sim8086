@@ -119,7 +119,6 @@ func (i Instruction) String() string {
 		i.RM.Size = i.Size
 	}
 
-	fmt.Printf("size: %d\n", i.Size)
 	out.WriteString(i.Op.String() + " ")
 
 	if i.Reg.Type != Operand_None {

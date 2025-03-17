@@ -135,6 +135,10 @@ func (r *Reader) Dump() string {
 	return fmt.Sprintf("%s\n%s", binout.String(), out.String())
 }
 
+func (r *Reader) EndInstruction() {
+	r.byteRecord = []byte{}
+}
+
 func (r *Reader) EndInstructionAndPrint() {
 	r.PrintInstruction()
 	r.byteRecord = []byte{}
